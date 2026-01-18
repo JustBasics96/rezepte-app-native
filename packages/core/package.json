@@ -1,0 +1,21 @@
+{
+  "name": "@our-recipebook/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'lint: handled at app level'",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.25.76",
+    "@supabase/supabase-js": "^2.57.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
