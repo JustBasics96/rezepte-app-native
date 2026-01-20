@@ -7,11 +7,16 @@ import { assertEnv, env } from './env'
 
 assertEnv()
 
+const isServer = typeof window === 'undefined'
+
 export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
+    // On native we use AsyncStorage for persisted sessions.
+    // On web/SSR (where window is undefined), avoid AsyncStorage to prevent
+    // "window is not defined" crashes and skip persistence on the server side.
+    persistSession: !isServer,
+    autoRefreshToken: !isServer,
     detectSessionInUrl: false,
-    storage: AsyncStorage
+    storage: isServer ? undefined : AsyncStorage
   }
 })

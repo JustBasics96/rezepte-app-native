@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Image, ImageStyle, StyleSheet, View } from 'react-native'
+import { Image, ImageStyle, Platform, StyleSheet, View } from 'react-native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 
 // Render a simple placeholder view instead of requiring a binary asset
@@ -7,15 +7,24 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 export function RecipeImage({ uri, style }: { uri: string | null; style?: ImageStyle }) {
   const [hasError, setHasError] = useState(false)
 
-  // Reset error state when the uri changes
+  // Reset error state when URI changes
   useEffect(() => {
     setHasError(false)
   }, [uri])
 
   const showImage = !!uri && !hasError
 
-  if (showImage) {
-    return <Image source={{ uri }} style={style} resizeMode="cover" onError={() => setHasError(true)} />
+  if (showImage && uri) {
+    return (
+      <Image
+        source={{ uri }}
+        style={style}
+        resizeMode="cover"
+        onError={(e) => {
+          setHasError(true)
+        }}
+      />
+    )
   }
 
   const placeholderStyle = StyleSheet.flatten([

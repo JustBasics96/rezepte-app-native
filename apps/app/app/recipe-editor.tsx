@@ -2,23 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
-
-import type { Recipe } from '@our-recipebook/core'
-
-import { uploadRecipePhoto, publicPhotoUrl } from '../src/features/photos'
-import { useRecipes } from '../src/features/recipes'
-import { useHousehold } from '../src/providers/HouseholdProvider'
+      try {
 import { Screen } from '../src/ui/components/Screen'
 import { TopBar } from '../src/ui/components/TopBar'
 import { Input } from '../src/ui/components/Input'
 import { Button } from '../src/ui/components/Button'
 import { Chip } from '../src/ui/components/Chip'
 import { Card } from '../src/ui/components/Card'
-import { LoadingState, ErrorState } from '../src/ui/components/States'
-import { RecipeImage } from '../src/ui/components/RecipeImage'
-import { useTheme } from '../src/ui/theme'
-
-function parseTags(raw: string): string[] {
   return raw
     .split(',')
     .map((s) => s.trim())
@@ -92,8 +82,13 @@ export default function RecipeEditorScreen() {
       return
     }
 
+    const mediaTypes =
+      // Prefer new MediaType enum when available, fall back to deprecated MediaTypeOptions
+      // for compatibility with older versions.
+      (ImagePicker as any).MediaType?.Images ?? ImagePicker.MediaTypeOptions.Images
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes,
       quality: 0.85,
       allowsEditing: true,
       aspect: [4, 3]
@@ -125,7 +120,25 @@ export default function RecipeEditorScreen() {
       const saved = await recipes.saveRecipe(payload)
 
       if (photoUri) {
-        const path = await uploadRecipePhoto({ householdId: household.id, recipeId: saved.id, uri: photoUri, mimeType: photoMime })
+        console.log('[OurRecipeBook] save: uploading photo', {
+          recipeId: saved.id,
+          householdId: household.id,
+          uri: photoUri,
+          mimeType: photoMime
+        })
+
+        const path = await uploadRecipePhoto({
+          householdId: household.id,
+          recipeId: saved.id,
+          uri: photoUri,
+          mimeType: photoMime
+        })
+
+        console.log('[OurRecipeBook] save: photo uploaded, saving recipe with photo_path', {
+          recipeId: saved.id,
+          path
+        })
+
         await recipes.saveRecipe({ id: saved.id, title: saved.title, ingredients: saved.ingredients, steps: saved.steps, photo_path: path })
         setExistingPhotoPath(path)
         setPhotoUri(null)
