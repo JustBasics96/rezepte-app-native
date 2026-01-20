@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "our-recipebook",
+    "slug": "our-recipebook",
+    "version": "0.1.0",
+    "sdkVersion": "54.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "bundleIdentifier": "io.ruberg.familyreceip"
+    }
+  }
+}
