@@ -22,14 +22,19 @@ export async function uploadRecipePhoto(opts: {
   const ext = extFromMime(opts.mimeType)
   const path = `${opts.householdId}/${opts.recipeId}.${ext}`
 
-  // Expo-compatible upload: fetch the local uri and upload Blob.
-  const resp = await fetch(opts.uri)
-  const blob = await resp.blob()
+  const contentType = opts.mimeType || 'image/jpeg'
+
+  // React Native / Expo: pass a file-like object with uri, name, and type.
+  const file = {
+    uri: opts.uri,
+    name: `${opts.recipeId}.${ext}`,
+    type: contentType
+  } as any
 
   const { data, error } = await supabase.storage
     .from('recipe-photos')
-    .upload(path, blob, { upsert: true, contentType: opts.mimeType })
+    .upload(path, file, { upsert: true, contentType })
 
   if (error) throw error
-  return data.path
+  return data.path ?? path
 }

@@ -1,5 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { Alert, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { Swipeable } from 'react-native-gesture-handler'
+
+import FontAwesome from '@expo/vector-icons/FontAwesome'
 
 import { weeksAgoLabel } from '@our-recipebook/core'
 
@@ -20,14 +23,24 @@ import { useFocusEffect } from '@react-navigation/native'
 
 const DAY_NAMES = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
+type DayStatus = 'empty' | 'planned' | 'cooked'
+
 function dayLabel(isoDay: string) {
   const d = new Date(isoDay + 'T00:00:00')
   const name = DAY_NAMES[(d.getDay() + 6) % 7]
   return `${name} ${d.getDate()}.${d.getMonth() + 1}.`
 }
 
+function getDayStatus(it: { recipe_id?: string | null; status?: 'planned' | 'prepped' | 'cooked' } | undefined): DayStatus {
+  if (!it?.recipe_id) return 'empty'
+  if (it.status === 'cooked') return 'cooked'
+  return 'planned'
+}
+
 export default function PlanScreen() {
   const t = useTheme()
+  const { width } = useWindowDimensions()
+  const chipsInline = width >= 500
   // Week navigation: offset from current week
   const [weekOffset, setWeekOffset] = useState(0)
   const anchorDate = useMemo(() => {
@@ -36,12 +49,13 @@ export default function PlanScreen() {
     return d
   }, [weekOffset])
   const week = useMealPlanWeek(anchorDate)
-    // Refresh week data whenever this screen gains focus (e.g., after choosing a recipe)
-    useFocusEffect(
-      useCallback(() => {
-        week.refresh()
-      }, [week.refresh])
-    )
+  const { refresh: refreshWeek } = week
+  // Refresh week data whenever this screen gains focus (e.g., after choosing a recipe)
+  useFocusEffect(
+    useCallback(() => {
+      refreshWeek()
+    }, [refreshWeek])
+  )
   const recipes = useRecipes()
   const feedback = useCookFeedback()
 
@@ -54,6 +68,14 @@ export default function PlanScreen() {
   }, [week.days])
 
   const headerTitle = weekLabel ? `Wochenplan · ${weekLabel}` : 'Wochenplan'
+
+  const weekChips = (
+    <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 8 }}>
+      <Chip label="‹ Woche" onPress={() => setWeekOffset((x) => x - 1)} accessibilityLabel="Vorherige Woche" />
+      <Chip label="Heute" onPress={() => setWeekOffset(0)} accessibilityLabel="Zur aktuellen Woche" />
+      <Chip label="Woche ›" onPress={() => setWeekOffset((x) => x + 1)} accessibilityLabel="Nächste Woche" />
+    </View>
+  )
 
   // Collapse past days to reduce clutter — define hooks before any conditional returns
   const [collapsePast, setCollapsePast] = useState(true)
@@ -122,12 +144,31 @@ export default function PlanScreen() {
     Alert.alert('Eingetragen', `${dayLabel(target)} ist jetzt geplant.`)
   }
 
+  function confirmClearDay(day: string) {
+    const label = dayLabel(day)
+    Alert.alert(
+      'Plan leeren',
+      `${label}: Plan für diesen Tag wirklich leeren?`,
+      [
+        { text: 'Abbrechen', style: 'cancel' },
+        {
+          text: 'Leeren',
+          style: 'destructive',
+          onPress: () => {
+            void week.setDay(day, null)
+          }
+        }
+      ]
+    )
+  }
+
   // Prepare content for a single render path to keep hook order stable
   const content = (() => {
     if (week.loading || recipes.loading) {
       return (
         <>
-          <TopBar title={headerTitle} />
+          <TopBar title={headerTitle} right={chipsInline ? weekChips : undefined} />
+          {!chipsInline && weekChips}
           <LoadingState />
         </>
       )
@@ -136,7 +177,8 @@ export default function PlanScreen() {
     if (week.error) {
       return (
         <>
-          <TopBar title={headerTitle} />
+          <TopBar title={headerTitle} right={chipsInline ? weekChips : undefined} />
+          {!chipsInline && weekChips}
           <ErrorState message={week.error} onRetry={week.refresh} />
         </>
       )
@@ -145,16 +187,8 @@ export default function PlanScreen() {
     if (!week.days.length) {
       return (
         <>
-          <TopBar
-            title={headerTitle}
-            right={
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Chip label="‹ Woche" onPress={() => setWeekOffset((x) => x - 1)} accessibilityLabel="Vorherige Woche" />
-                <Chip label="Heute" onPress={() => setWeekOffset(0)} accessibilityLabel="Zur aktuellen Woche" />
-                <Chip label="Woche ›" onPress={() => setWeekOffset((x) => x + 1)} accessibilityLabel="Nächste Woche" />
-              </View>
-            }
-          />
+          <TopBar title={headerTitle} right={chipsInline ? weekChips : undefined} />
+          {!chipsInline && weekChips}
           <EmptyState title="Noch keine Woche" body="Bitte neu laden." />
         </>
       )
@@ -162,16 +196,8 @@ export default function PlanScreen() {
 
     return (
       <>
-        <TopBar
-          title={headerTitle}
-          right={
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Chip label="‹ Woche" onPress={() => setWeekOffset((x) => x - 1)} accessibilityLabel="Vorherige Woche" />
-              <Chip label="Heute" onPress={() => setWeekOffset(0)} accessibilityLabel="Zur aktuellen Woche" />
-              <Chip label="Woche ›" onPress={() => setWeekOffset((x) => x + 1)} accessibilityLabel="Nächste Woche" />
-            </View>
-          }
-        />
+        <TopBar title={headerTitle} right={chipsInline ? weekChips : undefined} />
+        {!chipsInline && weekChips}
 
         {workedWell.length ? (
           <Card>
@@ -223,12 +249,32 @@ export default function PlanScreen() {
 
   function renderDay(day: string) {
     const it = week.byDay.get(day)
-    const status = it?.recipe_id ? it.status : 'empty'
-    const title = it?.recipe?.title ?? (it?.recipe_id ? recipes.recipesById.get(it.recipe_id)?.title : null)
-    const photo = it?.recipe?.photo_path ?? (it?.recipe_id ? recipes.recipesById.get(it.recipe_id)?.photo_path : null)
-    const photoUrl = publicPhotoUrl(photo ?? null)
+    const hasRecipe = !!it?.recipe_id
+    const status: DayStatus = getDayStatus(it)
 
-    return (
+    const recipe = hasRecipe && it?.recipe_id ? recipes.recipesById.get(it.recipe_id) ?? null : null
+    const title = recipe?.title ?? it?.recipe?.title ?? null
+    const photo = recipe?.photo_path ?? it?.recipe?.photo_path ?? null
+    const photoUrl = publicPhotoUrl(photo ?? null)
+    const portions = recipe?.portions ?? null
+    const tags = (recipe?.tags ?? []).slice(0, 2)
+    const showMeta = (portions != null && portions !== 0) || tags.length > 0
+
+    const renderRightActions = () => (
+      <View style={styles.swipeDeleteContainer}>
+        <Pressable
+          style={styles.swipeDeleteButton}
+          onPress={() => confirmClearDay(day)}
+          accessibilityRole="button"
+          accessibilityLabel={`${dayLabel(day)}: Plan für diesen Tag leeren`}
+        >
+          <FontAwesome name="trash" size={20} color="#FFFFFF" />
+          <Text style={styles.swipeDeleteText}>Leeren</Text>
+        </Pressable>
+      </View>
+    )
+
+    const cardContent = (
       <Pressable
         key={day}
         onPress={() => onPickRecipe(day)}
@@ -236,53 +282,92 @@ export default function PlanScreen() {
         accessibilityLabel={`${dayLabel(day)}: Rezept auswählen`}
       >
         {({ pressed }) => (
-          <Card style={{ opacity: pressed ? 0.92 : 1 }}>
+          <Card style={{ opacity: pressed ? 0.92 : 1, paddingVertical: hasRecipe ? 14 : 10 }}>
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.day, { color: t.muted }]}>{dayLabel(day)}</Text>
-                <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-                  {title ?? 'Tippen zum Rezept wählen'}
-                </Text>
+                {hasRecipe ? (
+                  <View>
+                    <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+                      {title ?? 'Rezept auswählen'}
+                    </Text>
+                    {showMeta && (
+                      <View style={styles.metaRow}>
+                        {portions ? (
+                          <View style={[styles.metaPill, { borderColor: t.border }]}>
+                            <Text style={[styles.metaText, { color: t.muted }]}>{`x${portions}`}</Text>
+                          </View>
+                        ) : null}
+                        {tags.map((tag) => (
+                          <View key={tag} style={[styles.metaPill, { borderColor: t.border }]}>
+                            <Text style={[styles.metaText, { color: t.muted }]} numberOfLines={1}>
+                              {tag}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.emptyCtaRow}>
+                    <FontAwesome name="plus-circle" size={18} color={t.tint} />
+                    <Text style={[styles.emptyCtaText, { color: t.tint }]}>Rezept auswählen</Text>
+                  </View>
+                )}
               </View>
 
-              <View style={styles.statusWrap}>
-                <Text
-                  style={[
-                    styles.status,
-                    {
-                      color: status === 'cooked' ? t.success : status === 'planned' ? t.tint : t.muted,
-                      borderColor: t.border
+              {status !== 'empty' ? (
+                <View style={styles.statusWrap}>
+                  <Text
+                    style={[
+                      styles.status,
+                      {
+                        color: status === 'cooked' ? t.success : t.tint,
+                        borderColor: status === 'cooked' ? t.success : t.tint
+                      }
+                    ]}
+                  >
+                    {status === 'cooked' ? 'Gekocht ✅' : 'Geplant'}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            {hasRecipe ? (
+              <View style={styles.bottomRow}>
+                <RecipeImage uri={photoUrl} style={styles.image} />
+
+                <View style={styles.actions}>
+                  <Chip
+                    label="Gekocht"
+                    selected={status === 'cooked'}
+                    onPress={() => onToggleCooked(day)}
+                    accessibilityLabel={
+                      status === 'cooked' ? 'Als nicht gekocht markieren' : 'Als gekocht markieren'
                     }
-                  ]}
-                >
-                  {status === 'cooked' ? '✓ gekocht' : status === 'planned' ? 'geplant' : 'leer'}
-                </Text>
+                  />
+                </View>
               </View>
-            </View>
-
-            <View style={styles.bottomRow}>
-              <RecipeImage uri={photoUrl} style={styles.image} />
-
-              <View style={styles.actions}>
-                <Button
-                  title={it?.status === 'cooked' ? 'Undo' : 'Gekocht'}
-                  variant={it?.recipe_id ? 'secondary' : 'ghost'}
-                  onPress={() => onToggleCooked(day)}
-                  disabled={!it?.recipe_id}
-                  accessibilityLabel="Als gekocht markieren"
-                />
-                <Button
-                  title="Leeren"
-                  variant="ghost"
-                  onPress={() => week.setDay(day, null)}
-                  disabled={!it?.recipe_id}
-                  accessibilityLabel="Tag leeren"
-                />
-              </View>
-            </View>
+            ) : null}
           </Card>
         )}
       </Pressable>
+    )
+
+    if (!hasRecipe) {
+      return <View key={day}>{cardContent}</View>
+    }
+
+    return (
+      <Swipeable
+        key={day}
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        friction={2}
+        rightThreshold={40}
+      >
+        {cardContent}
+      </Swipeable>
     )
   }
 
@@ -293,6 +378,16 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   day: { fontSize: 13, fontWeight: '700' },
   title: { fontSize: 18, fontWeight: '800' },
+   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+   metaPill: {
+     paddingHorizontal: 8,
+     paddingVertical: 2,
+     borderRadius: 999,
+     borderWidth: StyleSheet.hairlineWidth
+   },
+   metaText: { fontSize: 11, fontWeight: '600' },
+   emptyCtaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+   emptyCtaText: { marginLeft: 8, fontSize: 16, fontWeight: '700' },
   statusWrap: { alignItems: 'flex-end' },
   status: {
     fontSize: 12,
@@ -305,6 +400,26 @@ const styles = StyleSheet.create({
   bottomRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   image: { width: 84, height: 64, borderRadius: 12 },
   actions: { flex: 1, gap: 8, flexDirection: 'row', flexWrap: 'wrap' },
+  swipeDeleteContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-end'
+  },
+  swipeDeleteButton: {
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 90,
+    height: '100%',
+    paddingHorizontal: 16,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16
+  },
+  swipeDeleteText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 4
+  },
   sectionTitle: { fontSize: 16, fontWeight: '900' },
   workedRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   workedTitle: { fontSize: 16, fontWeight: '800' },

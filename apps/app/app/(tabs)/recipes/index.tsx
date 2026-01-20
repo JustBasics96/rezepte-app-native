@@ -19,6 +19,7 @@ import { useTheme } from '../../../src/ui/theme'
 export default function RecipesTab() {
   const t = useTheme()
   const recipes = useRecipes()
+  const { refresh: refreshRecipes } = recipes
   const [q, setQ] = useState('')
   const [favOnly, setFavOnly] = useState(false)
   const [tag, setTag] = useState<string | null>(null)
@@ -26,8 +27,8 @@ export default function RecipesTab() {
   // Ensure list reflects latest changes when returning from editor
   useFocusEffect(
     useCallback(() => {
-      recipes.refresh()
-    }, [recipes.refresh])
+      refreshRecipes()
+    }, [refreshRecipes])
   )
 
   const tags = useMemo(() => {

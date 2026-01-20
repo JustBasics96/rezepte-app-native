@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 
@@ -31,6 +31,7 @@ export default function RecipeEditorScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
   const { household } = useHousehold()
   const recipes = useRecipes()
+  const { loadRecipe } = recipes
 
   const isEdit = Boolean(id)
 
@@ -56,8 +57,7 @@ export default function RecipeEditorScreen() {
     ;(async () => {
       try {
         setLoading(true)
-        const r = await recipes.loadRecipe(id)
-        if (!mounted) return
+        const r = await loadRecipe(id)
         setTitle(r.title ?? '')
         setPortions(r.portions != null ? String(r.portions) : '')
         setIngredients(r.ingredients ?? '')
@@ -77,7 +77,7 @@ export default function RecipeEditorScreen() {
     return () => {
       mounted = false
     }
-  }, [id])
+  }, [id, loadRecipe])
 
   const previewPhoto = useMemo(() => {
     if (photoUri) return photoUri
@@ -162,7 +162,10 @@ export default function RecipeEditorScreen() {
   if (loading) {
     return (
       <Screen>
-        <TopBar title={isEdit ? 'Rezept' : 'Neues Rezept'} left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar
+          title={isEdit ? 'Rezept' : 'Neues Rezept'}
+          left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+        />
         <LoadingState />
       </Screen>
     )
@@ -171,7 +174,10 @@ export default function RecipeEditorScreen() {
   if (error && isEdit) {
     return (
       <Screen>
-        <TopBar title={isEdit ? 'Rezept' : 'Neues Rezept'} left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar
+          title={isEdit ? 'Rezept' : 'Neues Rezept'}
+          left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+        />
         <ErrorState message={error} onRetry={() => router.back()} />
       </Screen>
     )
@@ -179,7 +185,11 @@ export default function RecipeEditorScreen() {
 
   return (
     <Screen scroll>
-      <TopBar title={isEdit ? 'Rezept bearbeiten' : 'Neues Rezept'} left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+      <TopBar
+        title={isEdit ? 'Rezept bearbeiten' : 'Neues Rezept'}
+        left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+        right={<Chip label="Speichern" onPress={save} accessibilityLabel="Rezept speichern" />}
+      />
 
       {error ? (
         <Card>
@@ -207,10 +217,11 @@ export default function RecipeEditorScreen() {
       <Input label="Schritte" value={steps} onChangeText={setSteps} placeholder="1) ..." multiline />
       <Input label="Notizen" value={notes} onChangeText={setNotes} placeholder="Optional" multiline />
 
-      <View style={styles.actions}>
-        <Button title="Speichern" onPress={save} />
-        {id ? <Button title="Löschen" variant="danger" onPress={remove} /> : null}
-      </View>
+      {id ? (
+        <View style={styles.actions}>
+          <Button title="Löschen" variant="danger" onPress={remove} />
+        </View>
+      ) : null}
     </Screen>
   )
 }

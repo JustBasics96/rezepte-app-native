@@ -1,5 +1,6 @@
 import React from 'react'
 import { Stack } from 'expo-router'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { AppProviders } from '../src/providers/AppProviders'
 
@@ -11,12 +12,14 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   return (
-    <AppProviders>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="add-to-plan" />
-        <Stack.Screen name="recipe-editor" />
-      </Stack>
-    </AppProviders>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProviders>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="add-to-plan" />
+          <Stack.Screen name="recipe-editor" />
+        </Stack>
+      </AppProviders>
+    </GestureHandlerRootView>
   )
 }
