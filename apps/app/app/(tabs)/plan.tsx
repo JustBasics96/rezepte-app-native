@@ -88,17 +88,6 @@ export default function PlanScreen() {
   const pastDays = useMemo(() => week.days.filter((d) => isPast(d)), [week.days, isPast])
   const futureDays = useMemo(() => week.days.filter((d) => !isPast(d)), [week.days, isPast])
 
-  const workedWell = useMemo(() => {
-    const byRecipe = new Map<string, { score: 1 | -1; createdAt: string; day: string }>()
-    for (const f of feedback.items) {
-      if (!byRecipe.has(f.recipeId)) byRecipe.set(f.recipeId, { score: f.score, createdAt: f.createdAt, day: f.day })
-    }
-    return [...byRecipe.entries()]
-      .filter(([, v]) => v.score === 1)
-      .map(([recipeId, v]) => ({ recipeId, ...v }))
-      .slice(0, 3)
-  }, [feedback.items])
-
   function onPickRecipe(day: string) {
     router.push({ pathname: '/add-to-plan', params: { day } })
   }
@@ -198,27 +187,6 @@ export default function PlanScreen() {
       <>
         <TopBar title={headerTitle} right={chipsInline ? weekChips : undefined} />
         {!chipsInline && weekChips}
-
-        {workedWell.length ? (
-          <Card>
-            <Text style={[styles.sectionTitle, { color: t.text }]}>Hat gut funktioniert</Text>
-            {workedWell.map((w) => {
-              const r = recipes.recipesById.get(w.recipeId)
-              if (!r) return null
-              return (
-                <View key={w.recipeId} style={styles.workedRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.workedTitle, { color: t.text }]} numberOfLines={1}>
-                      {r.title}
-                    </Text>
-                    <Text style={[styles.muted, { color: t.muted }]}>{weeksAgoLabel(w.createdAt)}</Text>
-                  </View>
-                  <Button title="Wiederholen" variant="secondary" onPress={() => repeatRecipe(w.recipeId)} />
-                </View>
-              )
-            })}
-          </Card>
-        ) : null}
 
         {pastDays.length ? (
           <Card>
