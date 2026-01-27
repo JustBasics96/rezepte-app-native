@@ -2,13 +2,22 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
-      try {
+
 import { Screen } from '../src/ui/components/Screen'
 import { TopBar } from '../src/ui/components/TopBar'
 import { Input } from '../src/ui/components/Input'
 import { Button } from '../src/ui/components/Button'
 import { Chip } from '../src/ui/components/Chip'
 import { Card } from '../src/ui/components/Card'
+import { LoadingState, ErrorState } from '../src/ui/components/States'
+import { RecipeImage } from '../src/ui/components/RecipeImage'
+import { useTheme } from '../src/ui/theme'
+import { useHousehold } from '../src/providers/HouseholdProvider'
+import { useRecipes } from '../src/features/recipes'
+import { publicPhotoUrl, uploadRecipePhoto } from '../src/features/photos'
+import type { Recipe } from '@our-recipebook/core'
+
+function parseTags(raw: string): string[] {
   return raw
     .split(',')
     .map((s) => s.trim())
@@ -120,13 +129,6 @@ export default function RecipeEditorScreen() {
       const saved = await recipes.saveRecipe(payload)
 
       if (photoUri) {
-        console.log('[OurRecipeBook] save: uploading photo', {
-          recipeId: saved.id,
-          householdId: household.id,
-          uri: photoUri,
-          mimeType: photoMime
-        })
-
         const path = await uploadRecipePhoto({
           householdId: household.id,
           recipeId: saved.id,
@@ -134,12 +136,13 @@ export default function RecipeEditorScreen() {
           mimeType: photoMime
         })
 
-        console.log('[OurRecipeBook] save: photo uploaded, saving recipe with photo_path', {
-          recipeId: saved.id,
-          path
+        await recipes.saveRecipe({
+          id: saved.id,
+          title: saved.title,
+          ingredients: saved.ingredients,
+          steps: saved.steps,
+          photo_path: path
         })
-
-        await recipes.saveRecipe({ id: saved.id, title: saved.title, ingredients: saved.ingredients, steps: saved.steps, photo_path: path })
         setExistingPhotoPath(path)
         setPhotoUri(null)
       }

@@ -38,14 +38,14 @@ export default function FamilyTab() {
   }
 
   async function doReset() {
-    Alert.alert('Zurücksetzen?', 'Das trennt dieses Gerät und startet neu (lokale IDs werden gelöscht).', [
+    Alert.alert('Abmelden?', 'Du wirst abgemeldet und dieses Gerät wird zurückgesetzt (lokale IDs werden gelöscht).', [
       { text: 'Abbrechen', style: 'cancel' },
       {
-        text: 'Zurücksetzen',
+        text: 'Abmelden',
         style: 'destructive',
         onPress: async () => {
           await reset()
-          Alert.alert('OK', 'Neu starten: App erneut öffnen oder Refresh.')
+          Alert.alert('OK', 'Du bist abgemeldet. App erneut öffnen oder neu laden.')
         }
       }
     ])
@@ -91,9 +91,9 @@ export default function FamilyTab() {
       </Card>
 
       <Card>
-        <Text style={[styles.h, { color: t.text }]}>Reset</Text>
-        <Text style={[styles.p, { color: t.muted }]}>Wenn etwas hängt oder du in eine andere Familie wechseln willst.</Text>
-        <Button title="Zurücksetzen" variant="danger" onPress={doReset} />
+        <Text style={[styles.h, { color: t.text }]}>Abmelden</Text>
+        <Text style={[styles.p, { color: t.muted }]}>Meldet dieses Gerät ab und setzt lokale Daten zurück.</Text>
+        <Button title="Abmelden" variant="danger" onPress={doReset} />
       </Card>
 
       {household ? (

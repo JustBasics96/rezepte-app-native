@@ -23,18 +23,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     ;(async () => {
       try {
-        const { data } = await supabase.auth.getSession()
+        const { data, error } = await supabase.auth.getSession()
         if (!mounted) return
+        if (error) throw error
         setSession(data.session)
         setUser(data.session?.user ?? null)
-
-        if (!data.session) {
-          const { data: anon, error: anonError } = await supabase.auth.signInAnonymously()
-          if (anonError) throw anonError
-          if (!mounted) return
-          setSession(anon.session)
-          setUser(anon.session?.user ?? null)
-        }
       } catch (e: any) {
         console.error('[OurRecipeBook] Auth init failed', e)
         if (mounted) setError(e?.message ?? 'Auth init failed')
