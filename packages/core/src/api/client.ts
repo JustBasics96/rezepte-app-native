@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Household, MealPlanItem, Recipe } from './types'
+import type { CookFeedback, Household, MealPlanItem, Recipe } from './types'
 
 export async function listRecipes(sb: SupabaseClient) {
   return await sb.from('recipes').select('*').order('updated_at', { ascending: false })
@@ -63,6 +63,27 @@ export async function markLastCooked(sb: SupabaseClient, recipeId: string) {
   return await sb.from('recipes').update({ last_cooked_at: new Date().toISOString() }).eq('id', recipeId)
 }
 
+export async function listCookFeedback(sb: SupabaseClient, householdId: string) {
+  return await sb
+    .from('cook_feedback')
+    .select('recipe_id, day, score, created_at')
+    .eq('household_id', householdId)
+    .order('created_at', { ascending: false })
+}
+
+export async function insertCookFeedback(
+  sb: SupabaseClient,
+  householdId: string,
+  entry: Omit<CookFeedback, 'createdAt'>
+) {
+  return await sb.from('cook_feedback').insert({
+    household_id: householdId,
+    recipe_id: entry.recipeId,
+    day: entry.day,
+    score: entry.score
+  })
+}
+
 export async function createHousehold(sb: SupabaseClient) {
   return await sb.rpc('create_household')
 }
@@ -75,4 +96,4 @@ export async function getHousehold(sb: SupabaseClient, householdId: string) {
   return await sb.from('households').select('id, join_code').eq('id', householdId).single()
 }
 
-export type { Household, Recipe, MealPlanItem }
+export type { Household, Recipe, MealPlanItem, CookFeedback }
