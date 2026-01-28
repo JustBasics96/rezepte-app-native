@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { Alert, StyleSheet, Text, View } from 'react-native'
+import React, { useCallback, useMemo, useState } from 'react'
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 
 import { weeksAgoLabel } from '@our-recipebook/core'
@@ -22,36 +22,37 @@ export default function FamilyTab() {
   const feedback = useCookFeedback()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
+  const [search, setSearch] = useState('')
+  const [showJoin, setShowJoin] = useState(false)
 
+  // Aggregiere Feedback pro Rezept
   const feedbackByRecipe = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        good: number
-        bad: number
-        lastAt: string
-      }
-    >()
-
+    const map = new Map<string, { good: number; bad: number; lastAt: string }>()
     for (const f of feedback.items) {
-      const current = map.get(f.recipeId) ?? { good: 0, bad: 0, lastAt: f.createdAt }
-      if (f.score === 1) current.good += 1
-      if (f.score === -1) current.bad += 1
-      if (f.createdAt > current.lastAt) current.lastAt = f.createdAt
-      map.set(f.recipeId, current)
+      const cur = map.get(f.recipeId) ?? { good: 0, bad: 0, lastAt: f.createdAt }
+      if (f.score === 1) cur.good++
+      if (f.score === -1) cur.bad++
+      if (f.createdAt > cur.lastAt) cur.lastAt = f.createdAt
+      map.set(f.recipeId, cur)
     }
     return [...map.entries()].map(([recipeId, stats]) => ({ recipeId, ...stats }))
   }, [feedback.items])
 
-  const bestRecipes = useMemo(
-    () =>
-      feedbackByRecipe
-        .filter((x) => x.good > 0 && x.good >= x.bad)
-        .filter((x) => recipes.recipesById.get(x.recipeId))
-        .sort((a, b) => b.good - a.good || a.bad - b.bad)
-        .slice(0, 20),
-    [feedbackByRecipe, recipes.recipesById]
-  )
+  // Alle bewerteten Rezepte, gefiltert nach Suche, sortiert nach Score
+  const ratedRecipes = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return feedbackByRecipe
+      .map((entry) => {
+        const recipe = recipes.recipesById.get(entry.recipeId)
+        if (!recipe) return null
+        // Netto-Score: positiv = gut, negativ = schlecht
+        const score = entry.good - entry.bad
+        return { ...entry, recipe, score }
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+      .filter((x) => !q || x.recipe.title.toLowerCase().includes(q))
+      .sort((a, b) => b.score - a.score || b.good - a.good || a.recipe.title.localeCompare(b.recipe.title))
+  }, [feedbackByRecipe, recipes.recipesById, search])
 
   async function copy() {
     if (!joinCode) return
@@ -109,61 +110,80 @@ export default function FamilyTab() {
     <Screen scroll>
       <TopBar title="Familie" />
 
+      {/* Bewertete Rezepte – prominent oben */}
       <Card>
-        <Text style={[styles.h, { color: t.text }]}>Family Code</Text>
-        <Text style={[styles.code, { color: t.text, borderColor: t.border }]} selectable>
-          {joinCode ?? '—'}
-        </Text>
-        <View style={styles.row}>
-          <Button title="Code kopieren" variant="secondary" onPress={copy} disabled={!joinCode} />
-        </View>
-        <Text style={[styles.p, { color: t.muted }]}>Teile den Code mit deinem Partner. Auf dem zweiten Gerät: Code eingeben → Verbinden.</Text>
-      </Card>
+        <Text style={[styles.h, { color: t.text }]}>Bewertete Rezepte</Text>
 
-      <Card>
-        <Text style={[styles.h, { color: t.text }]}>Mit Familie verbinden</Text>
-        <Input label="Code" value={code} onChangeText={setCode} placeholder="z.B. 4K7W2Q" autoCapitalize="characters" />
-        <Button title="Verbinden" onPress={join} loading={busy} />
-      </Card>
-
-      <Card>
-        <Text style={[styles.h, { color: t.text }]}>Abmelden</Text>
-        <Text style={[styles.p, { color: t.muted }]}>Meldet dieses Gerät ab und setzt lokale Daten zurück.</Text>
-        <Button title="Abmelden" variant="danger" onPress={doReset} />
-      </Card>
-
-      <Card>
-        <Text style={[styles.h, { color: t.text }]}>Feedback zu Rezepten</Text>
-        <Text style={[styles.p, { color: t.muted }]}>
-          Zeigt, welche Rezepte bei euch gut funktioniert haben (lokal auf diesem Gerät gespeichert).
-        </Text>
+        {/* Suche */}
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Rezept suchen …"
+          placeholderTextColor={t.muted}
+          style={[styles.searchInput, { backgroundColor: t.bg, borderColor: t.border, color: t.text }]}
+          accessibilityLabel="Rezept suchen"
+        />
 
         {feedback.loading || recipes.loading ? (
-          <Text style={[styles.small, { color: t.muted }]}>Lade Feedback …</Text>
-        ) : !bestRecipes.length ? (
-          <Text style={[styles.small, { color: t.muted }]}>Noch kein positives Feedback gespeichert.</Text>
+          <Text style={[styles.small, { color: t.muted }]}>Lade …</Text>
+        ) : !ratedRecipes.length ? (
+          <Text style={[styles.small, { color: t.muted }]}>
+            {search ? 'Keine Treffer.' : 'Noch keine Bewertungen.'}
+          </Text>
         ) : (
-          bestRecipes.map((entry) => {
-            const recipe = recipes.recipesById.get(entry.recipeId)
-            if (!recipe) return null
-            return (
-              <View key={entry.recipeId} style={styles.feedbackRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.feedbackTitle, { color: t.text }]} numberOfLines={1}>
-                    {recipe.title}
-                  </Text>
-                  <Text style={[styles.small, { color: t.muted }]}>
-                    👍 {entry.good} · 👎 {entry.bad} · zuletzt {weeksAgoLabel(entry.lastAt)}
-                  </Text>
-                </View>
+          ratedRecipes.slice(0, 30).map((entry) => (
+            <View key={entry.recipeId} style={styles.feedbackRow}>
+              <Text style={[styles.scoreIcon, { color: entry.score >= 0 ? '#22c55e' : '#ef4444' }]}>
+                {entry.score >= 0 ? '👍' : '👎'}
+              </Text>
+              <View style={styles.feedbackContent}>
+                <Text style={[styles.feedbackTitle, { color: t.text }]} numberOfLines={1}>
+                  {entry.recipe.title}
+                </Text>
+                <Text style={[styles.feedbackMeta, { color: t.muted }]}>
+                  {entry.good}× gut · {entry.bad}× schlecht · {weeksAgoLabel(entry.lastAt)}
+                </Text>
               </View>
-            )
-          })
+            </View>
+          ))
         )}
       </Card>
 
+      {/* Family Code – kompakt */}
+      <Card>
+        <View style={styles.rowBetween}>
+          <Text style={[styles.h, { color: t.text }]}>Family Code</Text>
+          <Text style={[styles.codeInline, { color: t.text }]} selectable>
+            {joinCode ?? '—'}
+          </Text>
+        </View>
+        <Text style={[styles.hint, { color: t.muted }]}>
+          Teile den Code, damit ein zweites Gerät beitreten kann.
+        </Text>
+        <Button title="Kopieren" variant="secondary" onPress={copy} disabled={!joinCode} />
+      </Card>
+
+      {/* Mit Familie verbinden – einklappbar */}
+      <Card>
+        <Pressable onPress={() => setShowJoin((v) => !v)} style={styles.rowBetween}>
+          <Text style={[styles.h, { color: t.text }]}>Mit Code verbinden</Text>
+          <Text style={{ color: t.muted }}>{showJoin ? '▲' : '▼'}</Text>
+        </Pressable>
+        {showJoin && (
+          <>
+            <Input label="Code" value={code} onChangeText={setCode} placeholder="z.B. 4K7W2Q" autoCapitalize="characters" />
+            <Button title="Verbinden" onPress={join} loading={busy} />
+          </>
+        )}
+      </Card>
+
+      {/* Abmelden – dezent unten */}
+      <Pressable onPress={doReset} style={styles.logoutRow}>
+        <Text style={[styles.logoutText, { color: t.muted }]}>Abmelden / Zurücksetzen</Text>
+      </Pressable>
+
       {household ? (
-        <Text style={[styles.small, { color: t.muted }]}>Household: {household.id}</Text>
+        <Text style={[styles.tiny, { color: t.muted }]}>ID: {household.id}</Text>
       ) : null}
     </Screen>
   )
@@ -171,19 +191,23 @@ export default function FamilyTab() {
 
 const styles = StyleSheet.create({
   h: { fontSize: 16, fontWeight: '900' },
-  p: { fontSize: 13, fontWeight: '700', lineHeight: 18 },
-  small: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
-  feedbackRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  feedbackTitle: { fontSize: 14, fontWeight: '800' },
-  code: {
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: 2,
-    paddingVertical: 10,
+  hint: { fontSize: 12, fontWeight: '600', lineHeight: 16 },
+  small: { fontSize: 12, fontWeight: '700', textAlign: 'center', marginTop: 8 },
+  tiny: { fontSize: 10, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+  searchInput: {
     paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    textAlign: 'center'
+    fontSize: 14
   },
-  row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' }
+  feedbackRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 },
+  feedbackContent: { flex: 1 },
+  feedbackTitle: { fontSize: 14, fontWeight: '800' },
+  feedbackMeta: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  scoreIcon: { fontSize: 18, width: 26, textAlign: 'center' },
+  codeInline: { fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  logoutRow: { paddingVertical: 14, alignItems: 'center' },
+  logoutText: { fontSize: 13, fontWeight: '700' }
 })

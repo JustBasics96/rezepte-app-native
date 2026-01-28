@@ -20,7 +20,7 @@ export default function IndexScreen() {
   }, [ready, user, router])
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.background }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }}>
       <ActivityIndicator size="large" color={t.tint} />
     </View>
   )
