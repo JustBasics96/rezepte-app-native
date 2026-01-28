@@ -59,19 +59,6 @@ export default function PlanScreen() {
     }, [week.refresh])
   )
 
-  // Split days: past (excluding today) vs current/future
-  const { pastDays, currentDays } = useMemo(() => {
-    const past: string[] = []
-    const current: string[] = []
-    for (const d of week.days) {
-      if (isPast(d) && !isToday(d)) past.push(d)
-      else current.push(d)
-    }
-    return { pastDays: past, currentDays: current }
-  }, [week.days])
-
-  const [showPast, setShowPast] = useState(false)
-
   // Handlers
   function onPickRecipe(day: string, slot: number) {
     router.push({ pathname: '/add-to-plan', params: { day, slot: String(slot) } })
@@ -253,18 +240,8 @@ export default function PlanScreen() {
         </Pressable>
       </View>
 
-      {/* Past days - collapsed by default */}
-      {pastDays.length > 0 && (
-        <Pressable onPress={() => setShowPast((x) => !x)} style={styles.pastToggle}>
-          <Text style={[styles.pastToggleText, { color: t.muted }]}>
-            {showPast ? '▼' : '▶'} {pastDays.length} vergangene{pastDays.length === 1 ? 'r Tag' : ' Tage'}
-          </Text>
-        </Pressable>
-      )}
-      {showPast && pastDays.map((day) => <DayCard key={day} day={day} />)}
-
-      {/* Current and future days */}
-      {currentDays.map((day) => (
+      {/* All days */}
+      {week.days.map((day) => (
         <DayCard key={day} day={day} />
       ))}
     </Screen>
@@ -282,8 +259,6 @@ const styles = StyleSheet.create({
   },
   navArrow: { fontSize: 28, fontWeight: '300', paddingHorizontal: 12 },
   weekLabel: { fontSize: 15, fontWeight: '700' },
-  pastToggle: { paddingVertical: 10, paddingHorizontal: 4 },
-  pastToggleText: { fontSize: 13, fontWeight: '600' },
   dayCard: {
     borderRadius: 16,
     borderWidth: 1,
