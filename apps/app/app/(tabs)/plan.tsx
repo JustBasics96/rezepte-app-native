@@ -64,6 +64,10 @@ export default function PlanScreen() {
     router.push({ pathname: '/add-to-plan', params: { day, slot: String(slot) } })
   }
 
+  function onViewRecipe(recipeId: string) {
+    router.push({ pathname: '/recipe-editor', params: { id: recipeId } })
+  }
+
   async function onMarkCooked(day: string, slot: number) {
     const key = `${day}:${slot}`
     const it = week.byDaySlot.get(key)
@@ -117,22 +121,26 @@ export default function PlanScreen() {
           <Text style={[styles.slotLabel, { color: t.muted }]}>{SLOT_LABELS[slot]}</Text>
         )}
         {hasRecipe ? (
-          <Pressable 
-            style={styles.slotContent} 
-            onPress={() => onPickRecipe(day, slot)}
-            accessibilityLabel={`${SLOT_LABELS[slot]}: ${title}`}
-          >
-            <RecipeImage uri={photoUrl} style={styles.recipeImage} />
-            <View style={styles.recipeInfo}>
-              <Text style={[styles.recipeTitle, { color: t.text }]} numberOfLines={1}>
-                {title}
-              </Text>
-              {recipe?.tags?.length ? (
-                <Text style={[styles.recipeTags, { color: t.muted }]} numberOfLines={1}>
-                  {recipe.tags.slice(0, 2).join(' · ')}
+          <View style={styles.slotContent}>
+            {/* Tap recipe to view details */}
+            <Pressable 
+              style={styles.recipeRow}
+              onPress={() => it?.recipe_id && onViewRecipe(it.recipe_id)}
+              accessibilityLabel={`${title} anzeigen`}
+            >
+              <RecipeImage uri={photoUrl} style={styles.recipeImage} />
+              <View style={styles.recipeInfo}>
+                <Text style={[styles.recipeTitle, { color: t.text }]} numberOfLines={1}>
+                  {title}
                 </Text>
-              ) : null}
-            </View>
+                {recipe?.tags?.length ? (
+                  <Text style={[styles.recipeTags, { color: t.muted }]} numberOfLines={1}>
+                    {recipe.tags.slice(0, 2).join(' · ')}
+                  </Text>
+                ) : null}
+              </View>
+            </Pressable>
+            {/* Action buttons */}
             <Pressable
               onPress={() => onMarkCooked(day, slot)}
               style={[
@@ -145,10 +153,13 @@ export default function PlanScreen() {
                 {isCooked ? '✓' : '○'}
               </Text>
             </Pressable>
+            <Pressable onPress={() => onPickRecipe(day, slot)} hitSlop={8} accessibilityLabel="Anderes Gericht wählen">
+              <FontAwesome name="exchange" size={12} color={t.muted} />
+            </Pressable>
             <Pressable onPress={() => onClearSlot(day, slot)} hitSlop={10} accessibilityLabel="Slot leeren">
               <FontAwesome name="times" size={14} color={t.muted} />
             </Pressable>
-          </Pressable>
+          </View>
         ) : (
           <Pressable 
             style={styles.emptySlot} 
@@ -282,6 +293,7 @@ const styles = StyleSheet.create({
   slotRow: { marginTop: 6 },
   slotLabel: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
   slotContent: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  recipeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   recipeImage: { width: 52, height: 40, borderRadius: 8 },
   recipeInfo: { flex: 1, gap: 1 },
   recipeTitle: { fontSize: 14, fontWeight: '800' },
