@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Linking, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useTranslation } from 'react-i18next'
@@ -66,6 +66,17 @@ export default function FamilyTab() {
     if (!joinCode) return
     await Clipboard.setStringAsync(joinCode)
     Alert.alert(t('family.copied'), t('family.copiedHint'))
+  }
+
+  async function shareCode() {
+    if (!joinCode) return
+    try {
+      await Share.share({
+        message: t('family.shareMessage', { code: joinCode }),
+      })
+    } catch (e: any) {
+      console.error('[OurRecipeBook] share failed', e)
+    }
   }
 
   async function join() {
@@ -215,7 +226,14 @@ export default function FamilyTab() {
         <Text style={[styles.hint, { color: theme.muted }]}>
           {t('family.familyCodeHint')}
         </Text>
-        <Button title={t('common.copy')} variant="secondary" onPress={copy} disabled={!joinCode} />
+        <View style={styles.codeButtons}>
+          <View style={styles.codeButtonHalf}>
+            <Button title={t('common.copy')} variant="secondary" onPress={copy} disabled={!joinCode} />
+          </View>
+          <View style={styles.codeButtonHalf}>
+            <Button title={t('common.share')} variant="primary" onPress={shareCode} disabled={!joinCode} />
+          </View>
+        </View>
       </Card>
 
       {/* Mit Familie verbinden – einklappbar */}
@@ -293,6 +311,8 @@ const styles = StyleSheet.create({
   feedbackMeta: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   scoreIcon: { fontSize: 18, width: 26, textAlign: 'center' },
   codeInline: { fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  codeButtons: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  codeButtonHalf: { flex: 1 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logoutRow: { paddingVertical: 14, alignItems: 'center' },
   logoutText: { fontSize: 13, fontWeight: '700' },

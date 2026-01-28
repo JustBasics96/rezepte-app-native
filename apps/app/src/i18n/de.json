@@ -153,6 +153,7 @@
     "dailyPlanningHint": "Welche Mahlzeiten plant ihr?",
     "familyCode": "Family Code",
     "familyCodeHint": "Teile den Code, damit ein zweites Gerät beitreten kann.",
+    "shareMessage": "Hey! Tritt unserer Familie in der Rezeptbuch-App bei 🍽️\n\nDein Family Code: {{code}}\n\nEinfach die App öffnen → Familie → Mit Code verbinden",
     "copied": "Kopiert",
     "copiedHint": "Family Code ist in der Zwischenablage.",
     "connectWithCode": "Mit Code verbinden",
