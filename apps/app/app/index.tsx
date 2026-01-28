@@ -7,7 +7,7 @@ import { kv } from '../src/platform/storage'
 import { Onboarding } from '../src/ui/Onboarding'
 import { useTheme } from '../src/ui/theme'
 
-const KEY_ONBOARDING_DONE = 'orb.onboardingDone'
+export const KEY_ONBOARDING_DONE = 'orb.onboardingDone'
 
 export default function IndexScreen() {
   const { ready, user } = useSession()

@@ -169,7 +169,8 @@
     "imprint": "Imprint",
     "privacy": "Privacy",
     "language": "Language",
-    "languageHint": "Change app language"
+    "languageHint": "Change app language",
+    "showOnboarding": "Show introduction again"
   },
 
   "onboarding": {

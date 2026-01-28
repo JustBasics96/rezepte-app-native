@@ -9,6 +9,8 @@ import { weeksAgoLabel } from '@our-recipebook/core'
 import { useHousehold } from '../../src/providers/HouseholdProvider'
 import { useRecipes } from '../../src/features/recipes'
 import { useCookFeedback } from '../../src/features/cookFeedback'
+import { kv } from '../../src/platform/storage'
+import { Onboarding } from '../../src/ui/Onboarding'
 import { Screen } from '../../src/ui/components/Screen'
 import { TopBar } from '../../src/ui/components/TopBar'
 import { Card } from '../../src/ui/components/Card'
@@ -17,6 +19,7 @@ import { Button } from '../../src/ui/components/Button'
 import { LoadingState, ErrorState } from '../../src/ui/components/States'
 import { useTheme } from '../../src/ui/theme'
 import { setLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES, LANGUAGE_NAMES, type SupportedLanguage } from '../../src/i18n'
+import { KEY_ONBOARDING_DONE } from '../index'
 
 const SLOT_KEYS = ['breakfast', 'lunch', 'dinner', 'snack'] as const
 
@@ -30,6 +33,7 @@ export default function FamilyTab() {
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
   const [showJoin, setShowJoin] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const slotLabels = useMemo(() => SLOT_KEYS.map((key) => t(`slots.${key}`)), [t])
 
@@ -121,6 +125,11 @@ export default function FamilyTab() {
         }
       }
     ])
+  }
+
+  // Show onboarding overlay
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => setShowOnboarding(false)} />
   }
 
   if (!ready) {
@@ -257,6 +266,11 @@ export default function FamilyTab() {
           <Text style={[styles.codeInline, { color: theme.muted }]}>{LANGUAGE_NAMES[getCurrentLanguage()]}</Text>
         </Pressable>
       </Card>
+
+      {/* Show onboarding again */}
+      <Pressable onPress={() => setShowOnboarding(true)} style={styles.logoutRow}>
+        <Text style={[styles.logoutText, { color: theme.muted }]}>{t('family.showOnboarding')}</Text>
+      </Pressable>
 
       {/* Abmelden – dezent unten */}
       <Pressable onPress={doReset} style={styles.logoutRow}>

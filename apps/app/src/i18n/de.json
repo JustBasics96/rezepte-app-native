@@ -169,7 +169,8 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "language": "Sprache",
-    "languageHint": "App-Sprache ändern"
+    "languageHint": "App-Sprache ändern",
+    "showOnboarding": "Einführung erneut anzeigen"
   },
 
   "onboarding": {
