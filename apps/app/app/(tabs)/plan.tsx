@@ -247,7 +247,7 @@ export default function PlanScreen() {
         key={day}
         onPress={() => onPickRecipe(day)}
         accessibilityRole="button"
-        accessibilityLabel={`${dayLabel(day)}: Rezept auswählen`}
+        accessibilityLabel={`${dayLabel(day)}: Gericht auswählen`}
       >
         {({ pressed }) => (
           <Card style={{ opacity: pressed ? 0.92 : 1, paddingVertical: hasRecipe ? 14 : 10 }}>
@@ -257,7 +257,7 @@ export default function PlanScreen() {
                 {hasRecipe ? (
                   <View>
                     <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-                      {title ?? 'Rezept auswählen'}
+                      {title ?? 'Gericht auswählen'}
                     </Text>
                     {showMeta && (
                       <View style={styles.metaRow}>
@@ -279,7 +279,7 @@ export default function PlanScreen() {
                 ) : (
                   <View style={styles.emptyCtaRow}>
                     <FontAwesome name="plus-circle" size={18} color={t.tint} />
-                    <Text style={[styles.emptyCtaText, { color: t.tint }]}>Rezept auswählen</Text>
+                    <Text style={[styles.emptyCtaText, { color: t.tint }]}>Gericht auswählen</Text>
                   </View>
                 )}
               </View>

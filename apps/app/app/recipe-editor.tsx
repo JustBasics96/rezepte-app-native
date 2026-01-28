@@ -147,7 +147,7 @@ export default function RecipeEditorScreen() {
         setPhotoUri(null)
       }
 
-      Alert.alert('Gespeichert', 'Rezept wurde gespeichert.')
+      Alert.alert('Gespeichert', 'Gericht wurde gespeichert.')
       router.back()
     } catch (e: any) {
       console.error('[OurRecipeBook] saveRecipe failed', e)
@@ -157,7 +157,7 @@ export default function RecipeEditorScreen() {
 
   async function remove() {
     if (!id) return
-    Alert.alert('Löschen?', 'Rezept wirklich löschen?', [
+    Alert.alert('Löschen?', 'Gericht wirklich löschen?', [
       { text: 'Abbrechen', style: 'cancel' },
       {
         text: 'Löschen',
@@ -179,7 +179,7 @@ export default function RecipeEditorScreen() {
     return (
       <Screen>
         <TopBar
-          title={isEdit ? 'Rezept' : 'Neues Rezept'}
+          title={isEdit ? 'Gericht' : 'Neues Gericht'}
           left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
         />
         <LoadingState />
@@ -191,7 +191,7 @@ export default function RecipeEditorScreen() {
     return (
       <Screen>
         <TopBar
-          title={isEdit ? 'Rezept' : 'Neues Rezept'}
+          title={isEdit ? 'Gericht' : 'Neues Gericht'}
           left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
         />
         <ErrorState message={error} onRetry={() => router.back()} />
@@ -202,9 +202,9 @@ export default function RecipeEditorScreen() {
   return (
     <Screen scroll>
       <TopBar
-        title={isEdit ? 'Rezept bearbeiten' : 'Neues Rezept'}
+        title={isEdit ? 'Gericht bearbeiten' : 'Neues Gericht'}
         left={<Chip label="←" onPress={() => router.back()} accessibilityLabel="Zurück" />}
-        right={<Chip label="✓ Speichern" onPress={save} accessibilityLabel="Rezept speichern" />}
+        right={<Chip label="✓ Speichern" onPress={save} accessibilityLabel="Gericht speichern" />}
       />
 
       {error ? (
@@ -249,7 +249,7 @@ export default function RecipeEditorScreen() {
       {/* Danger zone */}
       {id ? (
         <View style={styles.dangerZone}>
-          <Button title="Rezept löschen" variant="danger" onPress={remove} />
+          <Button title="Gericht löschen" variant="danger" onPress={remove} />
         </View>
       ) : null}
     </Screen>

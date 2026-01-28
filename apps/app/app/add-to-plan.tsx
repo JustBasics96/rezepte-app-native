@@ -57,7 +57,7 @@ export default function AddToPlan() {
   if (recipes.loading || plan.loading) {
     return (
       <Screen>
-        <TopBar title="Rezept wählen" left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar title="Gericht wählen" left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
         <LoadingState />
       </Screen>
     )
@@ -66,7 +66,7 @@ export default function AddToPlan() {
   if (recipes.error) {
     return (
       <Screen>
-        <TopBar title="Rezept wählen" left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar title="Gericht wählen" left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
         <ErrorState message={recipes.error} onRetry={recipes.refresh} />
       </Screen>
     )
@@ -90,7 +90,7 @@ export default function AddToPlan() {
   return (
     <Screen scroll>
       <TopBar
-        title="Rezept wählen"
+        title="Gericht wählen"
         left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
         right={<Chip label="Leeren" onPress={clearDay} accessibilityLabel="Tag leeren" />}
       />
@@ -109,7 +109,7 @@ export default function AddToPlan() {
           key={r.id}
           onPress={() => choose(r.id)}
           accessibilityRole="button"
-          accessibilityLabel={`Rezept wählen: ${r.title}`}
+          accessibilityLabel={`Gericht wählen: ${r.title}`}
         >
           {({ pressed }) => (
             <Card style={{ opacity: pressed ? 0.92 : 1 }}>

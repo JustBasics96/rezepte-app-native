@@ -92,7 +92,7 @@ export default function RecipesTab() {
   if (recipes.loading) {
     return (
       <Screen>
-        <TopBar title="Rezepte" />
+        <TopBar title="Gerichte" />
         <LoadingState />
       </Screen>
     )
@@ -101,7 +101,7 @@ export default function RecipesTab() {
   if (recipes.error) {
     return (
       <Screen>
-        <TopBar title="Rezepte" />
+        <TopBar title="Gerichte" />
         <ErrorState message={recipes.error} onRetry={recipes.refresh} />
       </Screen>
     )
@@ -109,16 +109,16 @@ export default function RecipesTab() {
 
   return (
     <Screen scroll>
-      <TopBar title="Rezepte" />
+      <TopBar title="Gerichte" />
 
       {/* Search bar – clean, no label */}
       <TextInput
         value={q}
         onChangeText={setQ}
-        placeholder="Rezept suchen …"
+        placeholder="Gericht suchen …"
         placeholderTextColor={t.muted}
         style={[styles.search, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
-        accessibilityLabel="Rezept suchen"
+        accessibilityLabel="Gericht suchen"
       />
 
       {/* Sort + Filter row */}
@@ -140,16 +140,16 @@ export default function RecipesTab() {
       )}
 
       {/* Quick-add inline */}
-      <Pressable onPress={openNew} accessibilityRole="button" accessibilityLabel="Neues Rezept anlegen">
+      <Pressable onPress={openNew} accessibilityRole="button" accessibilityLabel="Neues Gericht anlegen">
         {({ pressed }) => (
           <View style={[styles.addRow, { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.85 : 1 }]}>
             <Text style={[styles.addIcon, { color: t.tint }]}>＋</Text>
-            <Text style={[styles.addText, { color: t.muted }]}>Neues Rezept anlegen</Text>
+            <Text style={[styles.addText, { color: t.muted }]}>Neues Gericht anlegen</Text>
           </View>
         )}
       </Pressable>
 
-      {!filtered.length ? <EmptyState title="Keine Rezepte" body="Lege dein erstes Rezept an." /> : null}
+      {!filtered.length ? <EmptyState title="Keine Gerichte" body="Lege dein erstes Gericht an." /> : null}
 
       {filtered.map((r) => {
         const photo = publicPhotoUrl(r.photo_path)
@@ -160,7 +160,7 @@ export default function RecipesTab() {
             key={r.id}
             onPress={() => openEdit(r.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Rezept öffnen: ${r.title}`}
+            accessibilityLabel={`Gericht öffnen: ${r.title}`}
           >
             {({ pressed }) => (
               <Card style={{ opacity: pressed ? 0.92 : 1 }}>

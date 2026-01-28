@@ -26,7 +26,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="recipes/index"
-        options={{ title: 'Rezepte', tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} /> }}
+        options={{ title: 'Gerichte', tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} /> }}
       />
       <Tabs.Screen
         name="family"
