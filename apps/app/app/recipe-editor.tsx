@@ -203,8 +203,8 @@ export default function RecipeEditorScreen() {
     <Screen scroll>
       <TopBar
         title={isEdit ? 'Rezept bearbeiten' : 'Neues Rezept'}
-        left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
-        right={<Chip label="Speichern" onPress={save} accessibilityLabel="Rezept speichern" />}
+        left={<Chip label="←" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+        right={<Chip label="✓ Speichern" onPress={save} accessibilityLabel="Rezept speichern" />}
       />
 
       {error ? (
@@ -213,29 +213,43 @@ export default function RecipeEditorScreen() {
         </Card>
       ) : null}
 
+      {/* Primary: Title – most important, always visible */}
+      <Input label="Titel *" value={title} onChangeText={setTitle} placeholder="z.B. Spaghetti Bolognese" autoCapitalize="sentences" />
+
+      {/* Quick meta row: Photo + Favorite */}
       <Card>
         <View style={styles.photoRow}>
           <RecipeImage uri={previewPhoto} style={styles.photo} />
-          <View style={{ flex: 1, gap: 10 }}>
-            <Button title="Foto wählen" variant="secondary" onPress={pickPhoto} />
-            <View style={styles.chipsRow}>
-              <Chip label={favorite ? '★ Favorit' : '☆ Favorit'} selected={favorite} onPress={() => setFavorite((x) => !x)} />
-            </View>
+          <View style={styles.photoMeta}>
+            <Button title="Foto" variant="secondary" onPress={pickPhoto} />
+            <Chip label={favorite ? '★ Favorit' : '☆ Favorit'} selected={favorite} onPress={() => setFavorite((x) => !x)} />
           </View>
         </View>
       </Card>
 
-      <Input label="Titel" value={title} onChangeText={setTitle} placeholder="z.B. Spaghetti" autoCapitalize="sentences" />
-      <Input label="Portionen" value={portions} onChangeText={setPortions} placeholder="z.B. 2" keyboardType="numeric" />
-      <Input label="Tags (kommagetrennt)" value={tagsRaw} onChangeText={setTagsRaw} placeholder="Kinder, Meal-prep" />
+      {/* Core content – what you need to cook */}
+      <Text style={[styles.sectionLabel, { color: t.muted }]}>Was brauchst du?</Text>
+      <Input label="Zutaten" value={ingredients} onChangeText={setIngredients} placeholder="1 x Zwiebel&#10;400 g Hackfleisch&#10;1 Dose Tomaten" multiline />
 
-      <Input label="Zutaten" value={ingredients} onChangeText={setIngredients} placeholder="1 x Tomaten\n200 g Nudeln" multiline />
-      <Input label="Schritte" value={steps} onChangeText={setSteps} placeholder="1) ..." multiline />
-      <Input label="Notizen" value={notes} onChangeText={setNotes} placeholder="Optional" multiline />
+      <Text style={[styles.sectionLabel, { color: t.muted }]}>Wie geht's?</Text>
+      <Input label="Zubereitung" value={steps} onChangeText={setSteps} placeholder="1) Zwiebel anbraten&#10;2) Hack dazu&#10;3) Tomaten rein, köcheln" multiline />
 
+      {/* Optional extras – collapsed feel */}
+      <Text style={[styles.sectionLabel, { color: t.muted }]}>Optional</Text>
+      <View style={styles.optionalRow}>
+        <View style={styles.halfInput}>
+          <Input label="Portionen" value={portions} onChangeText={setPortions} placeholder="4" keyboardType="numeric" />
+        </View>
+        <View style={styles.halfInput}>
+          <Input label="Tags" value={tagsRaw} onChangeText={setTagsRaw} placeholder="Schnell, Kinder" />
+        </View>
+      </View>
+      <Input label="Notizen" value={notes} onChangeText={setNotes} placeholder="Tipps, Varianten …" multiline />
+
+      {/* Danger zone */}
       {id ? (
-        <View style={styles.actions}>
-          <Button title="Löschen" variant="danger" onPress={remove} />
+        <View style={styles.dangerZone}>
+          <Button title="Rezept löschen" variant="danger" onPress={remove} />
         </View>
       ) : null}
     </Screen>
@@ -244,7 +258,10 @@ export default function RecipeEditorScreen() {
 
 const styles = StyleSheet.create({
   photoRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  photo: { width: 120, height: 90, borderRadius: 14 },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  actions: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' }
+  photo: { width: 100, height: 75, borderRadius: 12 },
+  photoMeta: { flex: 1, gap: 10 },
+  sectionLabel: { fontSize: 13, fontWeight: '700', marginTop: 8, marginBottom: -4, marginLeft: 4 },
+  optionalRow: { flexDirection: 'row', gap: 12 },
+  halfInput: { flex: 1 },
+  dangerZone: { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#3333' }
 })
