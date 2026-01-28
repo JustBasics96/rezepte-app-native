@@ -9,14 +9,27 @@ import { useSession } from './SessionProvider'
 const KEY_HOUSEHOLD_ID = 'orb.householdId'
 const KEY_JOIN_CODE = 'orb.joinCode'
 
+const DEFAULT_SLOTS = [2] // Just dinner by default
+
+function parseEnabledSlots(raw: string | number[] | null | undefined): number[] {
+  if (!raw) return DEFAULT_SLOTS
+  if (Array.isArray(raw)) return raw
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : DEFAULT_SLOTS
+  } catch {
+    return DEFAULT_SLOTS
+  }
+}
+
 type HouseholdState = {
   ready: boolean
   household: Household | null
   joinCode: string | null
-  mealsPerDay: number
+  enabledSlots: number[]
   error: string | null
   joinByCode: (code: string) => Promise<void>
-  setMealsPerDay: (count: number) => Promise<void>
+  toggleSlot: (slot: number) => Promise<void>
   reset: () => Promise<void>
 }
 
@@ -26,7 +39,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   const { user } = useSession()
   const [household, setHousehold] = useState<Household | null>(null)
   const [joinCode, setJoinCode] = useState<string | null>(null)
-  const [mealsPerDay, setMealsPerDayState] = useState(2)
+  const [enabledSlots, setEnabledSlotsState] = useState<number[]>(DEFAULT_SLOTS)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,10 +55,11 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
           const { data, error: qErr } = await getHousehold(supabase as any, storedId)
           if (!qErr && data) {
             await kv.setString(KEY_JOIN_CODE, data.join_code)
+            const slots = parseEnabledSlots(data.enabled_slots)
             if (mounted) {
-              setHousehold(data as Household)
+              setHousehold({ ...data, enabled_slots: slots } as Household)
               setJoinCode(data.join_code)
-              setMealsPerDayState(data.meals_per_day ?? 2)
+              setEnabledSlotsState(slots)
             }
             return
           }
@@ -64,10 +78,11 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
         await kv.setString(KEY_HOUSEHOLD_ID, created.id)
         await kv.setString(KEY_JOIN_CODE, created.join_code)
 
+        const slots = parseEnabledSlots(created.enabled_slots)
         if (mounted) {
-          setHousehold({ ...created, meals_per_day: created.meals_per_day ?? 2 })
+          setHousehold({ ...created, enabled_slots: slots })
           setJoinCode(created.join_code)
-          setMealsPerDayState(created.meals_per_day ?? 2)
+          setEnabledSlotsState(slots)
         }
       } catch (e: any) {
         console.error('[OurRecipeBook] Household init failed', e)
@@ -93,33 +108,47 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
 
     await kv.setString(KEY_HOUSEHOLD_ID, joined.id)
     await kv.setString(KEY_JOIN_CODE, joined.join_code)
-    setHousehold({ ...joined, meals_per_day: joined.meals_per_day ?? 2 })
+    const slots = parseEnabledSlots(joined.enabled_slots)
+    setHousehold({ ...joined, enabled_slots: slots })
     setJoinCode(joined.join_code)
-    setMealsPerDayState(joined.meals_per_day ?? 2)
+    setEnabledSlotsState(slots)
   }, [])
 
-  const setMealsPerDay = useCallback(async (count: number) => {
+  const toggleSlot = useCallback(async (slot: number) => {
     if (!household?.id) return
-    const clamped = Math.max(1, Math.min(4, count))
+    
+    const current = enabledSlots
+    let next: number[]
+    
+    if (current.includes(slot)) {
+      // Remove slot (but keep at least one)
+      next = current.filter(s => s !== slot)
+      if (next.length === 0) next = [slot] // Can't disable all
+    } else {
+      // Add slot
+      next = [...current, slot].sort((a, b) => a - b)
+    }
 
     // Optimistic update
-    setMealsPerDayState(clamped)
+    setEnabledSlotsState(next)
 
     const { data, error: uErr } = await updateHouseholdSettings(supabase as any, household.id, {
-      meals_per_day: clamped
+      enabled_slots: JSON.stringify(next)
     })
 
     if (uErr) {
-      console.error('[OurRecipeBook] Failed to update meals_per_day', uErr)
+      console.error('[OurRecipeBook] Failed to update enabled_slots', uErr)
       // Revert on error
-      setMealsPerDayState(household.meals_per_day ?? 2)
+      setEnabledSlotsState(current)
       return
     }
 
     if (data) {
-      setHousehold(data as Household)
+      const newSlots = parseEnabledSlots(data.enabled_slots)
+      setHousehold({ ...data, enabled_slots: newSlots } as Household)
+      setEnabledSlotsState(newSlots)
     }
-  }, [household?.id, household?.meals_per_day])
+  }, [household?.id, enabledSlots])
 
   const reset = useCallback(async () => {
     // Simple + robust: clear local IDs and sign out. Next startup recreates an anonymous session + household.
@@ -131,8 +160,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset }),
-    [ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset]
+    () => ({ ready, household, joinCode, enabledSlots, error, joinByCode, toggleSlot, reset }),
+    [ready, household, joinCode, enabledSlots, error, joinByCode, toggleSlot, reset]
   )
 
   return <HouseholdCtx.Provider value={value}>{children}</HouseholdCtx.Provider>

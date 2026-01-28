@@ -40,7 +40,7 @@ function isPast(isoDay: string) {
 
 export default function PlanScreen() {
   const t = useTheme()
-  const { mealsPerDay } = useHousehold()
+  const { enabledSlots } = useHousehold()
   const [weekOffset, setWeekOffset] = useState(0)
 
   const anchorDate = useMemo(() => {
@@ -91,7 +91,7 @@ export default function PlanScreen() {
   }
 
   async function onClearSlot(day: string, slot: number) {
-    const slotName = mealsPerDay > 1 ? SLOT_LABELS[slot] : 'Mahlzeit'
+    const slotName = SLOT_LABELS[slot]
     Alert.alert(`${slotName} leeren?`, `${formatDay(day, true)} – ${slotName} wirklich leeren?`, [
       { text: 'Abbrechen', style: 'cancel' },
       { text: 'Leeren', style: 'destructive', onPress: () => week.setDay(day, null, slot) }
@@ -107,13 +107,13 @@ export default function PlanScreen() {
   // Check if week is empty (no recipes planned)
   const isWeekEmpty = useMemo(() => {
     for (const day of week.days) {
-      for (let slot = 0; slot < mealsPerDay; slot++) {
+      for (const slot of enabledSlots) {
         const key = `${day}:${slot}`
         if (week.byDaySlot.get(key)?.recipe_id) return false
       }
     }
     return true
-  }, [week.days, week.byDaySlot, mealsPerDay])
+  }, [week.days, week.byDaySlot, enabledSlots])
 
   // Render a single meal slot row
   function MealSlot({ day, slot, showSlotLabel }: { day: string; slot: number; showSlotLabel: boolean }) {
@@ -191,7 +191,7 @@ export default function PlanScreen() {
   function DayCard({ day }: { day: string }) {
     const isTodayCard = isToday(day)
     const isPastDay = isPast(day)
-    const showSlotLabels = mealsPerDay > 1
+    const showSlotLabels = enabledSlots.length > 1
 
     return (
       <View
@@ -219,8 +219,8 @@ export default function PlanScreen() {
         </View>
 
         {/* Meal slots */}
-        {Array.from({ length: mealsPerDay }, (_, i) => (
-          <MealSlot key={i} day={day} slot={i} showSlotLabel={showSlotLabels} />
+        {enabledSlots.map((slot) => (
+          <MealSlot key={slot} day={day} slot={slot} showSlotLabel={showSlotLabels} />
         ))}
       </View>
     )

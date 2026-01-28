@@ -29,7 +29,7 @@ export type MealPlanItem = {
 export type Household = {
   id: string
   join_code: string
-  meals_per_day: number // 1-4, default 2
+  enabled_slots: number[] // indices 0-3: Frühstück, Mittag, Abend, Snack
 }
 
 // Optional lightweight memory aid (kept local-first; sync can be added later)

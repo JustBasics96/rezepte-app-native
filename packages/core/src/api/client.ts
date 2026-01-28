@@ -111,19 +111,19 @@ export async function joinHousehold(sb: SupabaseClient, joinCode: string) {
 }
 
 export async function getHousehold(sb: SupabaseClient, householdId: string) {
-  return await sb.from('households').select('id, join_code, meals_per_day').eq('id', householdId).single()
+  return await sb.from('households').select('id, join_code, enabled_slots').eq('id', householdId).single()
 }
 
 export async function updateHouseholdSettings(
   sb: SupabaseClient,
   householdId: string,
-  settings: { meals_per_day?: number }
+  settings: { enabled_slots?: string }
 ) {
   return await sb
     .from('households')
     .update(settings)
     .eq('id', householdId)
-    .select('id, join_code, meals_per_day')
+    .select('id, join_code, enabled_slots')
     .single()
 }
 

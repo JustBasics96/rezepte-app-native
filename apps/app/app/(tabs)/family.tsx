@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
 
 import { weeksAgoLabel } from '@our-recipebook/core'
 
@@ -15,9 +16,11 @@ import { Button } from '../../src/ui/components/Button'
 import { LoadingState, ErrorState } from '../../src/ui/components/States'
 import { useTheme } from '../../src/ui/theme'
 
+const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
+
 export default function FamilyTab() {
   const t = useTheme()
-  const { ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset } = useHousehold()
+  const { ready, household, joinCode, enabledSlots, error, joinByCode, toggleSlot, reset } = useHousehold()
   const recipes = useRecipes()
   const feedback = useCookFeedback()
   const [code, setCode] = useState('')
@@ -153,27 +156,30 @@ export default function FamilyTab() {
       <Card>
         <Text style={[styles.h, { color: t.text }]}>Tägliche Planung</Text>
         <Text style={[styles.hint, { color: t.muted, marginBottom: 10 }]}>
-          Wie viele Mahlzeiten plant ihr pro Tag?
+          Welche Mahlzeiten plant ihr?
         </Text>
-        <View style={styles.mealButtons}>
-          {[1, 2, 3, 4].map((n) => (
-            <Pressable
-              key={n}
-              onPress={() => setMealsPerDay(n)}
-              style={[
-                styles.mealButton,
-                { borderColor: mealsPerDay === n ? t.tint : t.border, backgroundColor: mealsPerDay === n ? t.tint + '20' : t.card }
-              ]}
-              accessibilityRole="radio"
-              accessibilityLabel={`${n} ${n === 1 ? 'Mahlzeit' : 'Mahlzeiten'} pro Tag`}
-              accessibilityState={{ checked: mealsPerDay === n }}
-            >
-              <Text style={[styles.mealButtonNum, { color: mealsPerDay === n ? t.tint : t.text }]}>{n}</Text>
-              <Text style={[styles.mealButtonLabel, { color: mealsPerDay === n ? t.tint : t.muted }]}>
-                {n === 1 ? 'Mahlzeit' : 'Mahlzeiten'}
-              </Text>
-            </Pressable>
-          ))}
+        <View style={styles.slotList}>
+          {SLOT_LABELS.map((label, idx) => {
+            const isEnabled = enabledSlots.includes(idx)
+            return (
+              <Pressable
+                key={idx}
+                onPress={() => toggleSlot(idx)}
+                style={[
+                  styles.slotRow,
+                  { borderColor: isEnabled ? t.tint : t.border, backgroundColor: isEnabled ? t.tint + '15' : t.card }
+                ]}
+                accessibilityRole="checkbox"
+                accessibilityLabel={label}
+                accessibilityState={{ checked: isEnabled }}
+              >
+                <View style={[styles.slotCheck, { borderColor: isEnabled ? t.tint : t.border, backgroundColor: isEnabled ? t.tint : 'transparent' }]}>
+                  {isEnabled && <FontAwesome name="check" size={12} color="#fff" />}
+                </View>
+                <Text style={[styles.slotLabel, { color: isEnabled ? t.tint : t.text }]}>{label}</Text>
+              </Pressable>
+            )
+          })}
         </View>
       </Card>
 
@@ -247,5 +253,24 @@ const styles = StyleSheet.create({
   codeInline: { fontSize: 18, fontWeight: '900', letterSpacing: 2 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logoutRow: { paddingVertical: 14, alignItems: 'center' },
-  logoutText: { fontSize: 13, fontWeight: '700' }
+  logoutText: { fontSize: 13, fontWeight: '700' },
+  slotList: { gap: 8 },
+  slotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 2
+  },
+  slotCheck: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  slotLabel: { fontSize: 15, fontWeight: '700' }
 })
