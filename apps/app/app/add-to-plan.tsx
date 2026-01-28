@@ -95,6 +95,31 @@ export default function AddToPlan() {
     router.back()
   }
 
+  // Surprise me: pick a random recipe, weighted towards favorites and less-recently-cooked
+  async function surpriseMe() {
+    if (!day || !filtered.length) return
+
+    // Pool candidates: Favorites get 3x weight, long-not-cooked get 2x weight
+    const candidates: string[] = []
+    const now = new Date()
+    for (const r of filtered) {
+      let weight = 1
+      if (r.is_favorite) weight += 2
+      // If not cooked in 30+ days, extra weight
+      if (r.last_cooked_at) {
+        const days = (now.getTime() - new Date(r.last_cooked_at).getTime()) / (1000 * 60 * 60 * 24)
+        if (days > 30) weight += 1
+      } else {
+        weight += 1 // Never cooked = extra interest
+      }
+      for (let i = 0; i < weight; i++) candidates.push(r.id)
+    }
+
+    const pick = candidates[Math.floor(Math.random() * candidates.length)]
+    await plan.setDay(day, pick, mealSlot)
+    router.back()
+  }
+
   async function clearSlot() {
     if (!day) return
     await plan.setDay(day, null, mealSlot)
@@ -129,6 +154,7 @@ export default function AddToPlan() {
         <Input label="Suche" value={q} onChangeText={setQ} placeholder="z.B. Nudeln" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll} contentContainerStyle={styles.tagScrollContent}>
           <Chip label="★ Favoriten" selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
+          <Chip label="🎲 Überrasch mich" onPress={surpriseMe} accessibilityLabel="Zufälliges Gericht wählen" />
           {tags.map((x) => (
             <Chip key={x} label={x} selected={tag === x} onPress={() => setTag(tag === x ? null : x)} />
           ))}
@@ -150,6 +176,7 @@ export default function AddToPlan() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll} contentContainerStyle={styles.tagScrollContent}>
         <Chip label="★ Favoriten" selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
+        <Chip label="🎲 Überrasch mich" onPress={surpriseMe} accessibilityLabel="Zufälliges Gericht wählen" />
         {tags.map((x) => (
           <Chip key={x} label={x} selected={tag === x} onPress={() => setTag(tag === x ? null : x)} />
         ))}
