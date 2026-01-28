@@ -40,9 +40,18 @@ export default function FamilyTab() {
       if (f.createdAt > current.lastAt) current.lastAt = f.createdAt
       map.set(f.recipeId, current)
     }
-
     return [...map.entries()].map(([recipeId, stats]) => ({ recipeId, ...stats }))
   }, [feedback.items])
+
+  const bestRecipes = useMemo(
+    () =>
+      feedbackByRecipe
+        .filter((x) => x.good > 0 && x.good >= x.bad)
+        .filter((x) => recipes.recipesById.get(x.recipeId))
+        .sort((a, b) => b.good - a.good || a.bad - b.bad)
+        .slice(0, 20),
+    [feedbackByRecipe, recipes.recipesById]
+  )
 
   async function copy() {
     if (!joinCode) return
@@ -126,34 +135,30 @@ export default function FamilyTab() {
       <Card>
         <Text style={[styles.h, { color: t.text }]}>Feedback zu Rezepten</Text>
         <Text style={[styles.p, { color: t.muted }]}>
-          Zeigt, welche Rezepte bei euch gut oder weniger gut funktioniert haben (lokal auf diesem Gerät gespeichert).
+          Zeigt, welche Rezepte bei euch gut funktioniert haben (lokal auf diesem Gerät gespeichert).
         </Text>
 
         {feedback.loading || recipes.loading ? (
           <Text style={[styles.small, { color: t.muted }]}>Lade Feedback …</Text>
-        ) : !feedbackByRecipe.length ? (
-          <Text style={[styles.small, { color: t.muted }]}>Noch kein Feedback gespeichert.</Text>
+        ) : !bestRecipes.length ? (
+          <Text style={[styles.small, { color: t.muted }]}>Noch kein positives Feedback gespeichert.</Text>
         ) : (
-          feedbackByRecipe
-            .filter((x) => recipes.recipesById.get(x.recipeId))
-            .sort((a, b) => b.good - a.good || a.bad - b.bad)
-            .slice(0, 20)
-            .map((entry) => {
-              const recipe = recipes.recipesById.get(entry.recipeId)
-              if (!recipe) return null
-              return (
-                <View key={entry.recipeId} style={styles.feedbackRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.feedbackTitle, { color: t.text }]} numberOfLines={1}>
-                      {recipe.title}
-                    </Text>
-                    <Text style={[styles.small, { color: t.muted }]}>
-                      👍 {entry.good} · 👎 {entry.bad} · zuletzt {weeksAgoLabel(entry.lastAt)}
-                    </Text>
-                  </View>
+          bestRecipes.map((entry) => {
+            const recipe = recipes.recipesById.get(entry.recipeId)
+            if (!recipe) return null
+            return (
+              <View key={entry.recipeId} style={styles.feedbackRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.feedbackTitle, { color: t.text }]} numberOfLines={1}>
+                    {recipe.title}
+                  </Text>
+                  <Text style={[styles.small, { color: t.muted }]}>
+                    👍 {entry.good} · 👎 {entry.bad} · zuletzt {weeksAgoLabel(entry.lastAt)}
+                  </Text>
                 </View>
-              )
-            })
+              </View>
+            )
+          })
         )}
       </Card>
 
