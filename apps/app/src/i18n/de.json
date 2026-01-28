@@ -21,6 +21,23 @@
     "version": "Version"
   },
 
+  "auth": {
+    "welcome": "Willkommen",
+    "tagline": "Gemeinsam kochen, gemeinsam planen",
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "or": "oder",
+    "noAccount": "Noch kein Konto? Registrieren",
+    "hasAccount": "Schon ein Konto? Anmelden",
+    "emailPasswordRequired": "Bitte E-Mail und Passwort eingeben.",
+    "loginFailed": "Anmeldung fehlgeschlagen.",
+    "appleError": "Apple-Anmeldung fehlgeschlagen.",
+    "confirmationSent": "Bestätigungs-E-Mail gesendet",
+    "checkEmail": "Bitte E-Mail prüfen und Anmeldung bestätigen."
+  },
+
   "tabs": {
     "plan": "Plan",
     "shopping": "Einkauf",

@@ -21,6 +21,23 @@
     "version": "Version"
   },
 
+  "auth": {
+    "welcome": "Welcome",
+    "tagline": "Cook together, plan together",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "or": "or",
+    "noAccount": "No account? Sign up",
+    "hasAccount": "Already have an account? Sign in",
+    "emailPasswordRequired": "Please enter email and password.",
+    "loginFailed": "Login failed.",
+    "appleError": "Apple Sign-In failed.",
+    "confirmationSent": "Confirmation email sent",
+    "checkEmail": "Please check your email and confirm your registration."
+  },
+
   "tabs": {
     "plan": "Plan",
     "shopping": "Shopping",
