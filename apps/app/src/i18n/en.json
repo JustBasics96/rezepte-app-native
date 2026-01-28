@@ -140,7 +140,9 @@
     "title": "Choose Recipe",
     "surprise": "🎲 Surprise me",
     "noRecipes": "No recipes",
-    "noRecipesHint": "Create some recipes first."
+    "noRecipesHint": "Create some recipes first.",
+    "newRecipePlaceholder": "＋ Create new recipe …",
+    "createAndAdd": "Create & plan"
   },
 
   "family": {

@@ -140,7 +140,9 @@
     "title": "Gericht wählen",
     "surprise": "🎲 Überrasch mich",
     "noRecipes": "Keine Gerichte",
-    "noRecipesHint": "Lege zuerst ein paar Gerichte an."
+    "noRecipesHint": "Lege zuerst ein paar Gerichte an.",
+    "newRecipePlaceholder": "＋ Neues Gericht erstellen …",
+    "createAndAdd": "Anlegen & planen"
   },
 
   "family": {

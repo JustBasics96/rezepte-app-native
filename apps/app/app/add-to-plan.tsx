@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import React, { useMemo, useRef, useState } from 'react'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import { Screen } from '../src/ui/components/Screen'
 import { TopBar } from '../src/ui/components/TopBar'
 import { Input } from '../src/ui/components/Input'
 import { Chip } from '../src/ui/components/Chip'
+import { Card } from '../src/ui/components/Card'
 import { LoadingState, ErrorState, EmptyState } from '../src/ui/components/States'
 import { RecipeImage } from '../src/ui/components/RecipeImage'
 import { useTheme } from '../src/ui/theme'
@@ -28,6 +29,11 @@ export default function AddToPlan() {
   const [q, setQ] = useState('')
   const [favOnly, setFavOnly] = useState(false)
   const [tag, setTag] = useState<string | null>(null)
+
+  // Quick-add new recipe
+  const [newTitle, setNewTitle] = useState('')
+  const [creating, setCreating] = useState(false)
+  const newInputRef = useRef<TextInput>(null)
 
   // Localized labels
   const dayNames = t('days.long', { returnObjects: true }) as string[]
@@ -96,6 +102,24 @@ export default function AddToPlan() {
     if (!day) return
     await plan.setDay(day, recipeId, mealSlot)
     router.back()
+  }
+
+  // Create new recipe and add to plan immediately
+  async function createAndAdd() {
+    const title = newTitle.trim()
+    if (!title || !day) return
+    try {
+      setCreating(true)
+      const saved = await recipes.saveRecipe({ title, ingredients: '', steps: '' })
+      await plan.setDay(day, saved.id, mealSlot)
+      setNewTitle('')
+      router.back()
+    } catch (e: any) {
+      console.error('[OurRecipeBook] createAndAdd failed', e)
+      Alert.alert(t('common.error'), e?.message ?? t('common.error'))
+    } finally {
+      setCreating(false)
+    }
   }
 
   // Surprise me: pick a random recipe, weighted towards favorites and less-recently-cooked
@@ -185,6 +209,39 @@ export default function AddToPlan() {
         ))}
       </ScrollView>
 
+      {/* Quick-add new recipe */}
+      <Card>
+        <View style={styles.quickAddRow}>
+          <TextInput
+            ref={newInputRef}
+            value={newTitle}
+            onChangeText={setNewTitle}
+            onSubmitEditing={createAndAdd}
+            placeholder={t('addToPlan.newRecipePlaceholder')}
+            placeholderTextColor={theme.muted}
+            returnKeyType="done"
+            blurOnSubmit={false}
+            editable={!creating}
+            style={[styles.quickAddInput, { color: theme.text }]}
+            accessibilityLabel={t('recipes.newRecipe')}
+          />
+          {newTitle.trim().length > 0 && (
+            <Pressable
+              onPress={createAndAdd}
+              disabled={creating}
+              accessibilityRole="button"
+              accessibilityLabel={t('addToPlan.createAndAdd')}
+            >
+              {({ pressed }) => (
+                <Text style={[styles.quickAddBtn, { color: theme.tint, opacity: pressed || creating ? 0.6 : 1 }]}>
+                  {creating ? '…' : t('addToPlan.createAndAdd')}
+                </Text>
+              )}
+            </Pressable>
+          )}
+        </View>
+      </Card>
+
       {filtered.map((r) => {
         const score = scoreMap.get(r.id) ?? 0
         const photoUrl = publicPhotoUrl(r.photo_path ?? null)
@@ -226,6 +283,9 @@ export default function AddToPlan() {
 const styles = StyleSheet.create({
   tagScroll: { marginVertical: 4 },
   tagScrollContent: { gap: 8, paddingRight: 16 },
+  quickAddRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  quickAddInput: { flex: 1, fontSize: 15, fontWeight: '600', paddingVertical: 4 },
+  quickAddBtn: { fontSize: 14, fontWeight: '800' },
   recipeRow: {
     flexDirection: 'row',
     alignItems: 'center',
