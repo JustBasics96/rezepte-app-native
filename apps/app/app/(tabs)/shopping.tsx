@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 
@@ -20,6 +20,8 @@ export default function ShoppingTab() {
   const shopping = useShoppingList()
 
   const [rebuilding, setRebuilding] = useState(false)
+  const [newItem, setNewItem] = useState('')
+  const inputRef = useRef<TextInput>(null)
 
   // Refresh on focus
   useFocusEffect(
@@ -72,6 +74,22 @@ export default function ShoppingTab() {
     ])
   }
 
+  // Add manual item
+  async function handleAddItem() {
+    if (!newItem.trim()) return
+    await shopping.addItem(newItem)
+    setNewItem('')
+    inputRef.current?.focus()
+  }
+
+  // Remove single item
+  function handleRemove(id: string, text: string) {
+    Alert.alert('Löschen?', `"${text}" entfernen?`, [
+      { text: 'Abbrechen', style: 'cancel' },
+      { text: 'Löschen', style: 'destructive', onPress: () => shopping.removeItem(id) }
+    ])
+  }
+
   // Stats
   const stats = useMemo(() => {
     const total = shopping.items.length
@@ -108,6 +126,29 @@ export default function ShoppingTab() {
   return (
     <Screen scroll>
       <TopBar title="Einkauf" />
+
+      {/* Manual add input */}
+      <View style={[styles.addRow, { backgroundColor: t.card, borderColor: t.border }]}>
+        <TextInput
+          ref={inputRef}
+          value={newItem}
+          onChangeText={setNewItem}
+          onSubmitEditing={handleAddItem}
+          placeholder="＋ Eintrag hinzufügen …"
+          placeholderTextColor={t.muted}
+          returnKeyType="done"
+          blurOnSubmit={false}
+          style={[styles.addInput, { color: t.text }]}
+          accessibilityLabel="Neuen Eintrag hinzufügen"
+        />
+        {newItem.trim().length > 0 && (
+          <Pressable onPress={handleAddItem} accessibilityLabel="Hinzufügen">
+            {({ pressed }) => (
+              <Text style={[styles.addBtn, { color: t.tint, opacity: pressed ? 0.6 : 1 }]}>Hinzufügen</Text>
+            )}
+          </Pressable>
+        )}
+      </View>
 
       {/* Action row */}
       <View style={styles.actions}>
@@ -186,6 +227,13 @@ export default function ShoppingTab() {
                   ×{item.sourceRecipeIds.length}
                 </Text>
               )}
+              <Pressable
+                onPress={() => handleRemove(item.id, item.text)}
+                hitSlop={8}
+                accessibilityLabel={`${item.text} löschen`}
+              >
+                <FontAwesome name="times" size={14} color={t.muted} />
+              </Pressable>
             </View>
           )}
         </Pressable>
@@ -194,7 +242,7 @@ export default function ShoppingTab() {
       {/* Footer hint */}
       {sorted.length > 0 && (
         <Text style={[styles.hint, { color: t.muted }]}>
-          Tippe auf einen Eintrag zum Abhaken
+          Tippe zum Abhaken · Lang drücken zum Löschen
         </Text>
       )}
     </Screen>
@@ -202,6 +250,18 @@ export default function ShoppingTab() {
 }
 
 const styles = StyleSheet.create({
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 8
+  },
+  addInput: { flex: 1, fontSize: 15, fontWeight: '600', paddingVertical: 10 },
+  addBtn: { fontSize: 15, fontWeight: '700', paddingVertical: 8, paddingHorizontal: 4 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   progress: { marginBottom: 12 },
   progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },

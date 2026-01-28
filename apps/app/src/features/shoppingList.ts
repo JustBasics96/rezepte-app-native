@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { MealPlanItem, Recipe, ShoppingItem } from '@our-recipebook/core'
-import { buildShoppingListFromPlan } from '@our-recipebook/core'
+import { buildShoppingListFromPlan, makeId } from '@our-recipebook/core'
 
 import { kv } from '../platform/storage'
 
@@ -55,11 +55,38 @@ export function useShoppingList() {
     [persist]
   )
 
+  const addItem = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed) return
+      const newItem: ShoppingItem = {
+        id: makeId(),
+        text: trimmed,
+        norm: trimmed.toLowerCase(),
+        qty: null,
+        unit: null,
+        checked: false,
+        sourceRecipeIds: []
+      }
+      await persist([newItem, ...state.items])
+    },
+    [state.items, persist]
+  )
+
+  const removeItem = useCallback(
+    async (id: string) => {
+      await persist(state.items.filter((i) => i.id !== id))
+    },
+    [state.items, persist]
+  )
+
   return {
     ...state,
     refresh: load,
     toggle,
     clearChecked,
-    rebuildFromPlan
+    rebuildFromPlan,
+    addItem,
+    removeItem
   }
 }
