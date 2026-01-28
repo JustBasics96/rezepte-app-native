@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, StyleSheet, Text, View } from 'react-native'
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 
@@ -85,6 +85,13 @@ export default function RecipeEditorScreen() {
   }, [photoUri, existingPhotoPath])
 
   async function pickPhoto() {
+    // Web: Skip ActionSheet, go directly to gallery (camera not well supported)
+    if (Platform.OS === 'web') {
+      await launchGallery()
+      return
+    }
+
+    // Native: Show ActionSheet with Camera + Gallery options
     Alert.alert('Foto hinzufügen', 'Woher soll das Foto kommen?', [
       { text: 'Kamera', onPress: () => launchCamera() },
       { text: 'Galerie', onPress: () => launchGallery() },
