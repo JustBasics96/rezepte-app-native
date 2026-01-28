@@ -85,6 +85,37 @@ export default function RecipeEditorScreen() {
   }, [photoUri, existingPhotoPath])
 
   async function pickPhoto() {
+    Alert.alert('Foto hinzufügen', 'Woher soll das Foto kommen?', [
+      { text: 'Kamera', onPress: () => launchCamera() },
+      { text: 'Galerie', onPress: () => launchGallery() },
+      { text: 'Abbrechen', style: 'cancel' }
+    ])
+  }
+
+  async function launchCamera() {
+    const perm = await ImagePicker.requestCameraPermissionsAsync()
+    if (!perm.granted) {
+      Alert.alert('Keine Berechtigung', 'Bitte erlaube Zugriff auf die Kamera.')
+      return
+    }
+
+    const mediaTypes =
+      (ImagePicker as any).MediaType?.Images ?? ImagePicker.MediaTypeOptions.Images
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes,
+      quality: 0.85,
+      allowsEditing: true,
+      aspect: [4, 3]
+    })
+
+    if (result.canceled) return
+    const asset = result.assets[0]
+    setPhotoUri(asset.uri)
+    setPhotoMime(asset.mimeType)
+  }
+
+  async function launchGallery() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
       Alert.alert('Keine Berechtigung', 'Bitte erlaube Zugriff auf deine Fotos.')
