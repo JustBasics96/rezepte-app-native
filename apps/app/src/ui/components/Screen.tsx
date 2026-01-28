@@ -1,14 +1,20 @@
 import React from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 
 export function Screen({ children, scroll = false }: { children: React.ReactNode; scroll?: boolean }) {
   const t = useTheme()
+  const insets = useSafeAreaInsets()
+
   if (scroll) {
     return (
-      <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]} edges={['top', 'left', 'right']}>
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(16, insets.bottom + 8) }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {children}
         </ScrollView>
       </SafeAreaView>
@@ -16,8 +22,8 @@ export function Screen({ children, scroll = false }: { children: React.ReactNode
   }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]}>
-      <View style={styles.content}>{children}</View>
+    <SafeAreaView style={[styles.root, { backgroundColor: t.bg }]} edges={['top', 'left', 'right']}>
+      <View style={[styles.content, { paddingBottom: Math.max(16, insets.bottom + 8) }]}>{children}</View>
     </SafeAreaView>
   )
 }

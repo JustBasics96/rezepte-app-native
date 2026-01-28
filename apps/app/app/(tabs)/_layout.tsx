@@ -1,6 +1,8 @@
 import React from 'react'
+import { Platform } from 'react-native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { Tabs } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 
 import { useTheme } from '../../src/ui/theme'
@@ -12,6 +14,10 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['nam
 export default function TabLayout() {
   const t = useTheme()
   const { t: tr } = useTranslation()
+  const insets = useSafeAreaInsets()
+
+  // Tab bar height: base + safe area bottom (for Home Indicator)
+  const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'ios' ? 0 : 8)
 
   return (
     <Tabs
@@ -19,7 +25,13 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: t.tint,
-        tabBarStyle: { backgroundColor: t.card, borderTopColor: t.border, height: 64, paddingBottom: 10, paddingTop: 8 },
+        tabBarStyle: {
+          backgroundColor: t.card,
+          borderTopColor: t.border,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+          paddingTop: 8
+        },
         tabBarLabelStyle: { fontSize: 12, fontWeight: '700' }
       }}
     >
