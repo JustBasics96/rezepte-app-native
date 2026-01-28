@@ -1,40 +1,21 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { useTheme } from './theme'
 
 type OnboardingStep = {
   emoji: string
-  title: string
-  body: string
+  titleKey: string
+  bodyKey: string
 }
 
-const STEPS: OnboardingStep[] = [
-  {
-    emoji: '👋',
-    title: 'Willkommen!',
-    body: 'Unser Rezeptbuch hilft eurer Familie, den Wochenplan zu organisieren – damit niemand mehr fragt: "Was gibt es heute?"'
-  },
-  {
-    emoji: '📝',
-    title: 'Gerichte sammeln',
-    body: 'Lege eure Lieblingsgerichte an – mit Zutaten, Foto und Tags wie "Schnell" oder "Kinder".'
-  },
-  {
-    emoji: '📅',
-    title: 'Woche planen',
-    body: 'Ziehe Gerichte in den Wochenplan. Mit "Überrasch mich" bekommst du zufällige Vorschläge.'
-  },
-  {
-    emoji: '🛒',
-    title: 'Einkaufen',
-    body: 'Die Einkaufsliste erstellt sich automatisch aus dem Plan – oder füge manuell Sachen hinzu.'
-  },
-  {
-    emoji: '👨‍👩‍👧‍👦',
-    title: 'Familie verbinden',
-    body: 'Teile den Family-Code und plant gemeinsam. Alle sehen den gleichen Plan!'
-  }
+const STEP_KEYS: OnboardingStep[] = [
+  { emoji: '👋', titleKey: 'onboarding.step1Title', bodyKey: 'onboarding.step1Body' },
+  { emoji: '📝', titleKey: 'onboarding.step2Title', bodyKey: 'onboarding.step2Body' },
+  { emoji: '📅', titleKey: 'onboarding.step3Title', bodyKey: 'onboarding.step3Body' },
+  { emoji: '🛒', titleKey: 'onboarding.step4Title', bodyKey: 'onboarding.step4Body' },
+  { emoji: '👨‍👩‍👧‍👦', titleKey: 'onboarding.step5Title', bodyKey: 'onboarding.step5Body' }
 ]
 
 type Props = {
@@ -42,11 +23,12 @@ type Props = {
 }
 
 export function Onboarding({ onComplete }: Props) {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const [step, setStep] = useState(0)
 
-  const current = STEPS[step]
-  const isLast = step === STEPS.length - 1
+  const current = STEP_KEYS[step]
+  const isLast = step === STEP_KEYS.length - 1
 
   function next() {
     if (isLast) {
@@ -61,13 +43,13 @@ export function Onboarding({ onComplete }: Props) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: t.bg }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Progress dots */}
       <View style={styles.dots}>
-        {STEPS.map((_, i) => (
+        {STEP_KEYS.map((_, i) => (
           <View
             key={i}
-            style={[styles.dot, { backgroundColor: i === step ? t.tint : t.border }]}
+            style={[styles.dot, { backgroundColor: i === step ? theme.tint : theme.border }]}
           />
         ))}
       </View>
@@ -75,24 +57,24 @@ export function Onboarding({ onComplete }: Props) {
       {/* Content */}
       <View style={styles.content}>
         <Text style={styles.emoji}>{current.emoji}</Text>
-        <Text style={[styles.title, { color: t.text }]}>{current.title}</Text>
-        <Text style={[styles.body, { color: t.muted }]}>{current.body}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t(current.titleKey)}</Text>
+        <Text style={[styles.body, { color: theme.muted }]}>{t(current.bodyKey)}</Text>
       </View>
 
       {/* Actions */}
       <View style={styles.actions}>
         {!isLast && (
           <Pressable onPress={skip} style={styles.skipBtn}>
-            <Text style={[styles.skipText, { color: t.muted }]}>Überspringen</Text>
+            <Text style={[styles.skipText, { color: theme.muted }]}>{t('common.skip')}</Text>
           </Pressable>
         )}
         <Pressable
           onPress={next}
-          style={[styles.nextBtn, { backgroundColor: t.tint }]}
+          style={[styles.nextBtn, { backgroundColor: theme.tint }]}
           accessibilityRole="button"
-          accessibilityLabel={isLast ? 'Los gehts' : 'Weiter'}
+          accessibilityLabel={isLast ? t('onboarding.letsGo') : t('common.next')}
         >
-          <Text style={styles.nextText}>{isLast ? 'Los gehts! 🚀' : 'Weiter'}</Text>
+          <Text style={styles.nextText}>{isLast ? t('onboarding.letsGo') : t('common.next')}</Text>
         </Pressable>
       </View>
     </View>

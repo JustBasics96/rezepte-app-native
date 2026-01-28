@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { router } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
+import { useTranslation } from 'react-i18next'
 
 import { weeksAgoLabel } from '@our-recipebook/core'
 
@@ -19,7 +20,8 @@ import { useTheme } from '../../../src/ui/theme'
 type SortMode = 'recent' | 'alpha' | 'rating'
 
 export default function RecipesTab() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const recipes = useRecipes()
   const feedback = useCookFeedback()
   const { refresh: refreshRecipes } = recipes
@@ -104,7 +106,7 @@ export default function RecipesTab() {
       router.push({ pathname: '/recipe-editor', params: { id: saved.id } })
     } catch (e: any) {
       console.error('[OurRecipeBook] quickAdd failed', e)
-      Alert.alert('Fehler', e?.message ?? 'Gericht konnte nicht erstellt werden')
+      Alert.alert(t('common.error'), e?.message ?? t('common.error'))
     } finally {
       setQuickSaving(false)
     }
@@ -113,7 +115,7 @@ export default function RecipesTab() {
   if (recipes.loading) {
     return (
       <Screen>
-        <TopBar title="Gerichte" />
+        <TopBar title={t('recipes.title')} />
         <LoadingState />
       </Screen>
     )
@@ -122,7 +124,7 @@ export default function RecipesTab() {
   if (recipes.error) {
     return (
       <Screen>
-        <TopBar title="Gerichte" />
+        <TopBar title={t('recipes.title')} />
         <ErrorState message={recipes.error} onRetry={recipes.refresh} />
       </Screen>
     )
@@ -130,25 +132,25 @@ export default function RecipesTab() {
 
   return (
     <Screen scroll>
-      <TopBar title="Gerichte" />
+      <TopBar title={t('recipes.title')} />
 
       {/* Search bar – clean, no label */}
       <TextInput
         value={q}
         onChangeText={setQ}
-        placeholder="Gericht suchen …"
-        placeholderTextColor={t.muted}
-        style={[styles.search, { backgroundColor: t.card, borderColor: t.border, color: t.text }]}
-        accessibilityLabel="Gericht suchen"
+        placeholder={t('recipes.searchPlaceholder')}
+        placeholderTextColor={theme.muted}
+        style={[styles.search, { backgroundColor: theme.card, borderColor: theme.border, color: theme.text }]}
+        accessibilityLabel={t('common.search')}
       />
 
       {/* Sort + Filter row */}
       <View style={styles.sortRow}>
-        <Chip label="Kürzlich" selected={sort === 'recent'} onPress={() => setSort('recent')} />
-        <Chip label="A–Z" selected={sort === 'alpha'} onPress={() => setSort('alpha')} />
-        <Chip label="Beliebt" selected={sort === 'rating'} onPress={() => setSort('rating')} />
+        <Chip label={t('recipes.sortRecent')} selected={sort === 'recent'} onPress={() => setSort('recent')} />
+        <Chip label={t('recipes.sortAlpha')} selected={sort === 'alpha'} onPress={() => setSort('alpha')} />
+        <Chip label={t('recipes.sortRating')} selected={sort === 'rating'} onPress={() => setSort('rating')} />
         <View style={styles.spacer} />
-        <Chip label="★" selected={favOnly} onPress={() => setFavOnly((x) => !x)} accessibilityLabel="Nur Favoriten" />
+        <Chip label="★" selected={favOnly} onPress={() => setFavOnly((x) => !x)} accessibilityLabel={t('recipes.favorites')} />
       </View>
 
       {/* Tags – horizontal scroll */}
@@ -161,37 +163,37 @@ export default function RecipesTab() {
       )}
 
       {/* Quick-add inline – type title and create instantly */}
-      <View style={[styles.quickAddRow, { backgroundColor: t.card, borderColor: t.border }]}>
+      <View style={[styles.quickAddRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <TextInput
           ref={quickInputRef}
           value={quickTitle}
           onChangeText={setQuickTitle}
           onSubmitEditing={handleQuickAdd}
-          placeholder="＋ Neues Gericht …"
-          placeholderTextColor={t.muted}
+          placeholder={t('recipes.quickAddPlaceholder')}
+          placeholderTextColor={theme.muted}
           returnKeyType="done"
           blurOnSubmit={false}
           editable={!quickSaving}
-          style={[styles.quickInput, { color: t.text }]}
-          accessibilityLabel="Neues Gericht schnell anlegen"
+          style={[styles.quickInput, { color: theme.text }]}
+          accessibilityLabel={t('recipes.newRecipe')}
         />
         {quickTitle.trim().length > 0 && (
           <Pressable
             onPress={handleQuickAdd}
             disabled={quickSaving}
             accessibilityRole="button"
-            accessibilityLabel="Gericht erstellen"
+            accessibilityLabel={t('common.add')}
           >
             {({ pressed }) => (
-              <Text style={[styles.quickBtn, { color: t.tint, opacity: pressed || quickSaving ? 0.6 : 1 }]}>
-                {quickSaving ? '…' : 'Anlegen'}
+              <Text style={[styles.quickBtn, { color: theme.tint, opacity: pressed || quickSaving ? 0.6 : 1 }]}>
+                {quickSaving ? '…' : t('common.add')}
               </Text>
             )}
           </Pressable>
         )}
       </View>
 
-      {!filtered.length ? <EmptyState title="Keine Gerichte" body="Lege dein erstes Gericht an." /> : null}
+      {!filtered.length ? <EmptyState title={t('recipes.emptyTitle')} body={t('recipes.emptyHint')} /> : null}
 
       {filtered.map((r) => {
         const photo = publicPhotoUrl(r.photo_path)
@@ -202,7 +204,7 @@ export default function RecipesTab() {
             key={r.id}
             onPress={() => openEdit(r.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Gericht öffnen: ${r.title}`}
+            accessibilityLabel={r.title}
           >
             {({ pressed }) => (
               <Card style={{ opacity: pressed ? 0.92 : 1 }}>
@@ -210,26 +212,26 @@ export default function RecipesTab() {
                   <RecipeImage uri={photo} style={styles.image} />
                   <View style={styles.content}>
                     <View style={styles.rowTop}>
-                      <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+                      <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
                         {r.title}
                       </Text>
                       <View style={styles.badges}>
                         {score !== null && (
-                          <Text style={[styles.scoreBadge, { color: score >= 0 ? t.success : t.danger }]}>
+                          <Text style={[styles.scoreBadge, { color: score >= 0 ? theme.success : theme.danger }]}>
                             {score >= 0 ? '👍' : '👎'} {Math.abs(score) > 0 ? Math.abs(score) : ''}
                           </Text>
                         )}
-                        {r.is_favorite && <Text style={[styles.star, { color: t.tint }]}>★</Text>}
+                        {r.is_favorite && <Text style={[styles.star, { color: theme.tint }]}>★</Text>}
                       </View>
                     </View>
                     <View style={styles.meta}>
                       {r.tags?.length ? (
-                        <Text style={[styles.metaText, { color: t.muted }]} numberOfLines={1}>
+                        <Text style={[styles.metaText, { color: theme.muted }]} numberOfLines={1}>
                           {r.tags.join(' · ')}
                         </Text>
                       ) : null}
                       {r.last_cooked_at ? (
-                        <Text style={[styles.metaText, { color: t.muted }]}>{weeksAgoLabel(r.last_cooked_at)}</Text>
+                        <Text style={[styles.metaText, { color: theme.muted }]}>{weeksAgoLabel(r.last_cooked_at)}</Text>
                       ) : null}
                     </View>
                   </View>

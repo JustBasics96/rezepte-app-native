@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { useTranslation } from 'react-i18next'
 
 import { useMealPlanWeek } from '../../src/features/mealPlan'
 import { useRecipes } from '../../src/features/recipes'
@@ -15,13 +16,11 @@ import { LoadingState, ErrorState } from '../../src/ui/components/States'
 import { RecipeImage } from '../../src/ui/components/RecipeImage'
 import { useTheme } from '../../src/ui/theme'
 
-const DAY_NAMES_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-const DAY_NAMES_LONG = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
-const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
+const SLOT_KEYS = ['breakfast', 'lunch', 'dinner', 'snack'] as const
 
-function formatDay(isoDay: string, long = false) {
+function formatDay(isoDay: string, long = false, dayNames: { short: string[]; long: string[] }) {
   const d = new Date(isoDay + 'T00:00:00')
-  const names = long ? DAY_NAMES_LONG : DAY_NAMES_SHORT
+  const names = long ? dayNames.long : dayNames.short
   const name = names[(d.getDay() + 6) % 7]
   return long ? `${name}, ${d.getDate()}.${d.getMonth() + 1}.` : `${name} ${d.getDate()}.`
 }
@@ -39,9 +38,17 @@ function isPast(isoDay: string) {
 }
 
 export default function PlanScreen() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const { enabledSlots } = useHousehold()
   const [weekOffset, setWeekOffset] = useState(0)
+
+  const dayNames = useMemo(() => ({
+    short: t('days.short', { returnObjects: true }) as string[],
+    long: t('days.long', { returnObjects: true }) as string[]
+  }), [t])
+
+  const slotLabels = useMemo(() => SLOT_KEYS.map((key) => t(`slots.${key}`)), [t])
 
   const anchorDate = useMemo(() => {
     const d = new Date()
@@ -82,27 +89,27 @@ export default function PlanScreen() {
       } catch (e) {
         console.warn('[OurRecipeBook] markLastCooked failed', e)
       }
-      Alert.alert("Wie war's?", 'Hilft beim Erinnern was gut funktioniert.', [
-        { text: '👍 Gut!', onPress: () => feedback.record({ recipeId: it.recipe_id, day, score: 1 }) },
-        { text: '👎 Naja', onPress: () => feedback.record({ recipeId: it.recipe_id, day, score: -1 }) },
-        { text: 'Überspringen', style: 'cancel' }
+      Alert.alert(t('feedback.title'), t('feedback.hint'), [
+        { text: t('feedback.good'), onPress: () => feedback.record({ recipeId: it.recipe_id, day, score: 1 }) },
+        { text: t('feedback.bad'), onPress: () => feedback.record({ recipeId: it.recipe_id, day, score: -1 }) },
+        { text: t('feedback.skip'), style: 'cancel' }
       ])
     }
   }
 
   async function onClearSlot(day: string, slot: number) {
-    const slotName = SLOT_LABELS[slot]
-    Alert.alert(`${slotName} leeren?`, `${formatDay(day, true)} – ${slotName} wirklich leeren?`, [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Leeren', style: 'destructive', onPress: () => week.setDay(day, null, slot) }
+    const slotName = slotLabels[slot]
+    Alert.alert(t('plan.clearSlot', { slot: slotName }), t('plan.clearSlotConfirm', { day: formatDay(day, true, dayNames), slot: slotName }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('plan.clear'), style: 'destructive', onPress: () => week.setDay(day, null, slot) }
     ])
   }
 
   // Week label
   const weekLabel = useMemo(() => {
     if (!week.days.length) return ''
-    return `${formatDay(week.days[0])} – ${formatDay(week.days[week.days.length - 1])}`
-  }, [week.days])
+    return `${formatDay(week.days[0], false, dayNames)} – ${formatDay(week.days[week.days.length - 1], false, dayNames)}`
+  }, [week.days, dayNames])
 
   // Check if week is empty (no recipes planned)
   const isWeekEmpty = useMemo(() => {
@@ -129,7 +136,7 @@ export default function PlanScreen() {
     return (
       <View style={styles.slotRow}>
         {showSlotLabel && (
-          <Text style={[styles.slotLabel, { color: t.muted }]}>{SLOT_LABELS[slot]}</Text>
+          <Text style={[styles.slotLabel, { color: theme.muted }]}>{slotLabels[slot]}</Text>
         )}
         {hasRecipe ? (
           <View style={styles.slotContent}>
@@ -137,15 +144,15 @@ export default function PlanScreen() {
             <Pressable 
               style={styles.recipeRow}
               onPress={() => it?.recipe_id && onViewRecipe(it.recipe_id)}
-              accessibilityLabel={`${title} anzeigen`}
+              accessibilityLabel={t('plan.showRecipe', { title })}
             >
               <RecipeImage uri={photoUrl} style={styles.recipeImage} />
               <View style={styles.recipeInfo}>
-                <Text style={[styles.recipeTitle, { color: t.text }]} numberOfLines={1}>
+                <Text style={[styles.recipeTitle, { color: theme.text }]} numberOfLines={1}>
                   {title}
                 </Text>
                 {recipe?.tags?.length ? (
-                  <Text style={[styles.recipeTags, { color: t.muted }]} numberOfLines={1}>
+                  <Text style={[styles.recipeTags, { color: theme.muted }]} numberOfLines={1}>
                     {recipe.tags.slice(0, 2).join(' · ')}
                   </Text>
                 ) : null}
@@ -156,30 +163,30 @@ export default function PlanScreen() {
               onPress={() => onMarkCooked(day, slot)}
               style={[
                 styles.cookedButton,
-                { backgroundColor: isCooked ? t.success : t.card, borderColor: isCooked ? t.success : t.border }
+                { backgroundColor: isCooked ? theme.success : theme.card, borderColor: isCooked ? theme.success : theme.border }
               ]}
-              accessibilityLabel={isCooked ? 'Als nicht gekocht markieren' : 'Als gekocht markieren'}
+              accessibilityLabel={isCooked ? t('plan.markNotCooked') : t('plan.markCooked')}
             >
-              <Text style={[styles.cookedIcon, { color: isCooked ? '#fff' : t.muted }]}>
+              <Text style={[styles.cookedIcon, { color: isCooked ? '#fff' : theme.muted }]}>
                 {isCooked ? '✓' : '○'}
               </Text>
             </Pressable>
-            <Pressable onPress={() => onPickRecipe(day, slot)} hitSlop={8} accessibilityLabel="Anderes Gericht wählen">
-              <FontAwesome name="exchange" size={12} color={t.muted} />
+            <Pressable onPress={() => onPickRecipe(day, slot)} hitSlop={8} accessibilityLabel={t('plan.swapRecipe')}>
+              <FontAwesome name="exchange" size={12} color={theme.muted} />
             </Pressable>
-            <Pressable onPress={() => onClearSlot(day, slot)} hitSlop={10} accessibilityLabel="Slot leeren">
-              <FontAwesome name="times" size={14} color={t.muted} />
+            <Pressable onPress={() => onClearSlot(day, slot)} hitSlop={10} accessibilityLabel={t('plan.clear')}>
+              <FontAwesome name="times" size={14} color={theme.muted} />
             </Pressable>
           </View>
         ) : (
           <Pressable 
             style={styles.emptySlot} 
             onPress={() => onPickRecipe(day, slot)}
-            accessibilityLabel={`${SLOT_LABELS[slot]}: Gericht wählen`}
+            accessibilityLabel={t('plan.chooseSlot', { slot: slotLabels[slot] })}
           >
-            <FontAwesome name="plus" size={14} color={t.tint} />
-            <Text style={[styles.emptyText, { color: t.tint }]}>
-              {showSlotLabel ? 'Gericht wählen' : `${SLOT_LABELS[slot]} wählen`}
+            <FontAwesome name="plus" size={14} color={theme.tint} />
+            <Text style={[styles.emptyText, { color: theme.tint }]}>
+              {showSlotLabel ? t('plan.chooseRecipe') : t('plan.chooseSlot', { slot: slotLabels[slot] })}
             </Text>
           </Pressable>
         )}
@@ -198,8 +205,8 @@ export default function PlanScreen() {
         style={[
           styles.dayCard,
           {
-            backgroundColor: isTodayCard ? t.tint + '15' : t.card,
-            borderColor: isTodayCard ? t.tint : t.border,
+            backgroundColor: isTodayCard ? theme.tint + '15' : theme.card,
+            borderColor: isTodayCard ? theme.tint : theme.border,
             opacity: isPastDay ? 0.7 : 1
           }
         ]}
@@ -208,12 +215,12 @@ export default function PlanScreen() {
         <View style={styles.dayHeader}>
           <View style={styles.dayLabelRow}>
             {isTodayCard && (
-              <View style={[styles.todayBadge, { backgroundColor: t.tint }]}>
-                <Text style={styles.todayText}>Heute</Text>
+              <View style={[styles.todayBadge, { backgroundColor: theme.tint }]}>
+                <Text style={styles.todayText}>{t('plan.today')}</Text>
               </View>
             )}
-            <Text style={[styles.dayName, { color: isTodayCard ? t.tint : t.muted }]}>
-              {formatDay(day, true)}
+            <Text style={[styles.dayName, { color: isTodayCard ? theme.tint : theme.muted }]}>
+              {formatDay(day, true, dayNames)}
             </Text>
           </View>
         </View>
@@ -230,7 +237,7 @@ export default function PlanScreen() {
   if (week.loading || recipes.loading) {
     return (
       <Screen>
-        <TopBar title="Wochenplan" />
+        <TopBar title={t('plan.title')} />
         <LoadingState />
       </Screen>
     )
@@ -239,7 +246,7 @@ export default function PlanScreen() {
   if (week.error) {
     return (
       <Screen>
-        <TopBar title="Wochenplan" />
+        <TopBar title={t('plan.title')} />
         <ErrorState message={week.error} onRetry={week.refresh} />
       </Screen>
     )
@@ -247,27 +254,27 @@ export default function PlanScreen() {
 
   return (
     <Screen scroll>
-      <TopBar title="Wochenplan" />
+      <TopBar title={t('plan.title')} />
 
       {/* Week navigation - compact */}
       <View style={styles.weekNav}>
-        <Pressable onPress={() => setWeekOffset((x) => x - 1)} hitSlop={12} accessibilityLabel="Vorherige Woche">
-          <Text style={[styles.navArrow, { color: t.tint }]}>‹</Text>
+        <Pressable onPress={() => setWeekOffset((x) => x - 1)} hitSlop={12}>
+          <Text style={[styles.navArrow, { color: theme.tint }]}>‹</Text>
         </Pressable>
-        <Pressable onPress={() => setWeekOffset(0)} accessibilityLabel="Zur aktuellen Woche">
-          <Text style={[styles.weekLabel, { color: t.text }]}>{weekLabel}</Text>
+        <Pressable onPress={() => setWeekOffset(0)}>
+          <Text style={[styles.weekLabel, { color: theme.text }]}>{weekLabel}</Text>
         </Pressable>
-        <Pressable onPress={() => setWeekOffset((x) => x + 1)} hitSlop={12} accessibilityLabel="Nächste Woche">
-          <Text style={[styles.navArrow, { color: t.tint }]}>›</Text>
+        <Pressable onPress={() => setWeekOffset((x) => x + 1)} hitSlop={12}>
+          <Text style={[styles.navArrow, { color: theme.tint }]}>›</Text>
         </Pressable>
       </View>
 
       {/* Empty week hint */}
       {isWeekEmpty && weekOffset === 0 && (
-        <View style={[styles.emptyHint, { backgroundColor: t.tint + '15', borderColor: t.tint }]}>
-          <Text style={[styles.emptyHintTitle, { color: t.tint }]}>🗓 Diese Woche ist noch leer</Text>
-          <Text style={[styles.emptyHintBody, { color: t.muted }]}>
-            Tippe auf ＋ um Gerichte zu planen – dann weißt du immer was auf den Tisch kommt!
+        <View style={[styles.emptyHint, { backgroundColor: theme.tint + '15', borderColor: theme.tint }]}>
+          <Text style={[styles.emptyHintTitle, { color: theme.tint }]}>🗓 {t('plan.emptyWeek')}</Text>
+          <Text style={[styles.emptyHintBody, { color: theme.muted }]}>
+            {t('plan.emptyWeekHint')}
           </Text>
         </View>
       )}

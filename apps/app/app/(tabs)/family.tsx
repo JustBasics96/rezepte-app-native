@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { useTranslation } from 'react-i18next'
 
 import { weeksAgoLabel } from '@our-recipebook/core'
 
@@ -15,11 +16,13 @@ import { Input } from '../../src/ui/components/Input'
 import { Button } from '../../src/ui/components/Button'
 import { LoadingState, ErrorState } from '../../src/ui/components/States'
 import { useTheme } from '../../src/ui/theme'
+import { setLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES, LANGUAGE_NAMES, type SupportedLanguage } from '../../src/i18n'
 
-const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
+const SLOT_KEYS = ['breakfast', 'lunch', 'dinner', 'snack'] as const
 
 export default function FamilyTab() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t, i18n } = useTranslation()
   const { ready, household, joinCode, enabledSlots, error, joinByCode, toggleSlot, reset } = useHousehold()
   const recipes = useRecipes()
   const feedback = useCookFeedback()
@@ -27,6 +30,8 @@ export default function FamilyTab() {
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
   const [showJoin, setShowJoin] = useState(false)
+
+  const slotLabels = useMemo(() => SLOT_KEYS.map((key) => t(`slots.${key}`)), [t])
 
   // Aggregiere Feedback pro Rezept
   const feedbackByRecipe = useMemo(() => {
@@ -60,7 +65,7 @@ export default function FamilyTab() {
   async function copy() {
     if (!joinCode) return
     await Clipboard.setStringAsync(joinCode)
-    Alert.alert('Kopiert', 'Family Code ist in der Zwischenablage.')
+    Alert.alert(t('family.copied'), t('family.copiedHint'))
   }
 
   async function join() {
@@ -68,24 +73,40 @@ export default function FamilyTab() {
       setBusy(true)
       await joinByCode(code)
       setCode('')
-      Alert.alert('Verbunden', 'Ihr seid jetzt in einer gemeinsamen Familie.')
+      Alert.alert(t('family.connected'), t('family.connectedHint'))
     } catch (e: any) {
       console.error('[OurRecipeBook] join failed', e)
-      Alert.alert('Fehler', e?.message ?? 'Join failed')
+      Alert.alert(t('common.error'), e?.message ?? 'Join failed')
     } finally {
       setBusy(false)
     }
   }
 
+  function changeLanguage() {
+    const current = getCurrentLanguage()
+    const options = SUPPORTED_LANGUAGES.map((lang) => ({
+      text: LANGUAGE_NAMES[lang] + (lang === current ? ' ✓' : ''),
+      onPress: () => {
+        setLanguage(lang)
+        // Force re-render by updating i18n
+        i18n.changeLanguage(lang)
+      }
+    }))
+    Alert.alert(t('family.language'), t('family.languageHint'), [
+      ...options,
+      { text: t('common.cancel'), style: 'cancel' }
+    ])
+  }
+
   async function doReset() {
-    Alert.alert('Abmelden?', 'Du wirst abgemeldet und dieses Gerät wird zurückgesetzt (lokale IDs werden gelöscht).', [
-      { text: 'Abbrechen', style: 'cancel' },
+    Alert.alert(t('family.logout') + '?', t('family.logoutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Abmelden',
+        text: t('family.logout').split(' / ')[0],
         style: 'destructive',
         onPress: async () => {
           await reset()
-          Alert.alert('OK', 'Du bist abgemeldet. App erneut öffnen oder neu laden.')
+          Alert.alert(t('common.ok'), t('family.loggedOut'))
         }
       }
     ])
@@ -94,7 +115,7 @@ export default function FamilyTab() {
   if (!ready) {
     return (
       <Screen>
-        <TopBar title="Familie" />
+        <TopBar title={t('family.title')} />
         <LoadingState />
       </Screen>
     )
@@ -103,7 +124,7 @@ export default function FamilyTab() {
   if (error) {
     return (
       <Screen>
-        <TopBar title="Familie" />
+        <TopBar title={t('family.title')} />
         <ErrorState message={error} />
       </Screen>
     )
@@ -111,27 +132,27 @@ export default function FamilyTab() {
 
   return (
     <Screen scroll>
-      <TopBar title="Familie" />
+      <TopBar title={t('family.title')} />
 
       {/* Bewertete Rezepte – prominent oben */}
       <Card>
-        <Text style={[styles.h, { color: t.text }]}>Bewertete Rezepte</Text>
+        <Text style={[styles.h, { color: theme.text }]}>{t('family.ratedRecipes')}</Text>
 
         {/* Suche */}
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Rezept suchen …"
-          placeholderTextColor={t.muted}
-          style={[styles.searchInput, { backgroundColor: t.bg, borderColor: t.border, color: t.text }]}
-          accessibilityLabel="Rezept suchen"
+          placeholder={t('family.searchRecipe')}
+          placeholderTextColor={theme.muted}
+          style={[styles.searchInput, { backgroundColor: theme.bg, borderColor: theme.border, color: theme.text }]}
+          accessibilityLabel={t('family.searchRecipe')}
         />
 
         {feedback.loading || recipes.loading ? (
-          <Text style={[styles.small, { color: t.muted }]}>Lade …</Text>
+          <Text style={[styles.small, { color: theme.muted }]}>{t('common.loading')}</Text>
         ) : !ratedRecipes.length ? (
-          <Text style={[styles.small, { color: t.muted }]}>
-            {search ? 'Keine Treffer.' : 'Noch keine Bewertungen.'}
+          <Text style={[styles.small, { color: theme.muted }]}>
+            {search ? t('family.noResults') : t('family.noRatings')}
           </Text>
         ) : (
           ratedRecipes.slice(0, 30).map((entry) => (
@@ -140,11 +161,11 @@ export default function FamilyTab() {
                 {entry.score >= 0 ? '👍' : '👎'}
               </Text>
               <View style={styles.feedbackContent}>
-                <Text style={[styles.feedbackTitle, { color: t.text }]} numberOfLines={1}>
+                <Text style={[styles.feedbackTitle, { color: theme.text }]} numberOfLines={1}>
                   {entry.recipe.title}
                 </Text>
-                <Text style={[styles.feedbackMeta, { color: t.muted }]}>
-                  {entry.good}× gut · {entry.bad}× schlecht · {weeksAgoLabel(entry.lastAt)}
+                <Text style={[styles.feedbackMeta, { color: theme.muted }]}>
+                  {t('recipes.timesGood', { count: entry.good })} · {t('recipes.timesBad', { count: entry.bad })} · {weeksAgoLabel(entry.lastAt)}
                 </Text>
               </View>
             </View>
@@ -154,12 +175,12 @@ export default function FamilyTab() {
 
       {/* Mahlzeiten-Einstellung */}
       <Card>
-        <Text style={[styles.h, { color: t.text }]}>Tägliche Planung</Text>
-        <Text style={[styles.hint, { color: t.muted, marginBottom: 10 }]}>
-          Welche Mahlzeiten plant ihr?
+        <Text style={[styles.h, { color: theme.text }]}>{t('family.dailyPlanning')}</Text>
+        <Text style={[styles.hint, { color: theme.muted, marginBottom: 10 }]}>
+          {t('family.dailyPlanningHint')}
         </Text>
         <View style={styles.slotList}>
-          {SLOT_LABELS.map((label, idx) => {
+          {slotLabels.map((label, idx) => {
             const isEnabled = enabledSlots.includes(idx)
             return (
               <Pressable
@@ -167,16 +188,16 @@ export default function FamilyTab() {
                 onPress={() => toggleSlot(idx)}
                 style={[
                   styles.slotRow,
-                  { borderColor: isEnabled ? t.tint : t.border, backgroundColor: isEnabled ? t.tint + '15' : t.card }
+                  { borderColor: isEnabled ? theme.tint : theme.border, backgroundColor: isEnabled ? theme.tint + '15' : theme.card }
                 ]}
                 accessibilityRole="checkbox"
                 accessibilityLabel={label}
                 accessibilityState={{ checked: isEnabled }}
               >
-                <View style={[styles.slotCheck, { borderColor: isEnabled ? t.tint : t.border, backgroundColor: isEnabled ? t.tint : 'transparent' }]}>
+                <View style={[styles.slotCheck, { borderColor: isEnabled ? theme.tint : theme.border, backgroundColor: isEnabled ? theme.tint : 'transparent' }]}>
                   {isEnabled && <FontAwesome name="check" size={12} color="#fff" />}
                 </View>
-                <Text style={[styles.slotLabel, { color: isEnabled ? t.tint : t.text }]}>{label}</Text>
+                <Text style={[styles.slotLabel, { color: isEnabled ? theme.tint : theme.text }]}>{label}</Text>
               </Pressable>
             )
           })}
@@ -186,51 +207,59 @@ export default function FamilyTab() {
       {/* Family Code – kompakt */}
       <Card>
         <View style={styles.rowBetween}>
-          <Text style={[styles.h, { color: t.text }]}>Family Code</Text>
-          <Text style={[styles.codeInline, { color: t.text }]} selectable>
+          <Text style={[styles.h, { color: theme.text }]}>{t('family.familyCode')}</Text>
+          <Text style={[styles.codeInline, { color: theme.text }]} selectable>
             {joinCode ?? '—'}
           </Text>
         </View>
-        <Text style={[styles.hint, { color: t.muted }]}>
-          Teile den Code, damit ein zweites Gerät beitreten kann.
+        <Text style={[styles.hint, { color: theme.muted }]}>
+          {t('family.familyCodeHint')}
         </Text>
-        <Button title="Kopieren" variant="secondary" onPress={copy} disabled={!joinCode} />
+        <Button title={t('common.copy')} variant="secondary" onPress={copy} disabled={!joinCode} />
       </Card>
 
       {/* Mit Familie verbinden – einklappbar */}
       <Card>
         <Pressable onPress={() => setShowJoin((v) => !v)} style={styles.rowBetween}>
-          <Text style={[styles.h, { color: t.text }]}>Mit Code verbinden</Text>
-          <Text style={{ color: t.muted }}>{showJoin ? '▲' : '▼'}</Text>
+          <Text style={[styles.h, { color: theme.text }]}>{t('family.connectWithCode')}</Text>
+          <Text style={{ color: theme.muted }}>{showJoin ? '▲' : '▼'}</Text>
         </Pressable>
         {showJoin && (
           <>
-            <Input label="Code" value={code} onChangeText={setCode} placeholder="z.B. 4K7W2Q" autoCapitalize="characters" />
-            <Button title="Verbinden" onPress={join} loading={busy} />
+            <Input label="Code" value={code} onChangeText={setCode} placeholder={t('family.codePlaceholder')} autoCapitalize="characters" />
+            <Button title={t('family.connect')} onPress={join} loading={busy} />
           </>
         )}
       </Card>
 
+      {/* Language selector */}
+      <Card>
+        <Pressable onPress={changeLanguage} style={styles.rowBetween}>
+          <Text style={[styles.h, { color: theme.text }]}>{t('family.language')}</Text>
+          <Text style={[styles.codeInline, { color: theme.muted }]}>{LANGUAGE_NAMES[getCurrentLanguage()]}</Text>
+        </Pressable>
+      </Card>
+
       {/* Abmelden – dezent unten */}
       <Pressable onPress={doReset} style={styles.logoutRow}>
-        <Text style={[styles.logoutText, { color: t.muted }]}>Abmelden / Zurücksetzen</Text>
+        <Text style={[styles.logoutText, { color: theme.muted }]}>{t('family.logout')}</Text>
       </Pressable>
 
       {/* Legal links */}
       <View style={styles.legalRow}>
         <Pressable onPress={() => Linking.openURL('https://ruberg.dev/rezeptbuch/impressum')}>
-          <Text style={[styles.legalLink, { color: t.muted }]}>Impressum</Text>
+          <Text style={[styles.legalLink, { color: theme.muted }]}>{t('family.imprint')}</Text>
         </Pressable>
-        <Text style={[styles.legalDot, { color: t.border }]}>·</Text>
+        <Text style={[styles.legalDot, { color: theme.border }]}>·</Text>
         <Pressable onPress={() => Linking.openURL('https://ruberg.dev/rezeptbuch/datenschutz')}>
-          <Text style={[styles.legalLink, { color: t.muted }]}>Datenschutz</Text>
+          <Text style={[styles.legalLink, { color: theme.muted }]}>{t('family.privacy')}</Text>
         </Pressable>
       </View>
 
-      <Text style={[styles.tiny, { color: t.muted }]}>Version 1.0.0</Text>
+      <Text style={[styles.tiny, { color: theme.muted }]}>{t('common.version')} 1.0.0</Text>
 
       {household ? (
-        <Text style={[styles.tiny, { color: t.muted }]}>ID: {household.id}</Text>
+        <Text style={[styles.tiny, { color: theme.muted }]}>ID: {household.id}</Text>
       ) : null}
     </Screen>
   )

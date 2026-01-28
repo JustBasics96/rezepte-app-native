@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, Platform, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import { useTranslation } from 'react-i18next'
 
 import { Screen } from '../src/ui/components/Screen'
 import { TopBar } from '../src/ui/components/TopBar'
@@ -26,7 +27,8 @@ function parseTags(raw: string): string[] {
 }
 
 export default function RecipeEditorScreen() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id?: string }>()
   const { household } = useHousehold()
   const recipes = useRecipes()
@@ -92,17 +94,17 @@ export default function RecipeEditorScreen() {
     }
 
     // Native: Show ActionSheet with Camera + Gallery options
-    Alert.alert('Foto hinzufügen', 'Woher soll das Foto kommen?', [
-      { text: 'Kamera', onPress: () => launchCamera() },
-      { text: 'Galerie', onPress: () => launchGallery() },
-      { text: 'Abbrechen', style: 'cancel' }
+    Alert.alert(t('editor.addPhoto'), t('editor.photoSource'), [
+      { text: t('editor.camera'), onPress: () => launchCamera() },
+      { text: t('editor.gallery'), onPress: () => launchGallery() },
+      { text: t('common.cancel'), style: 'cancel' }
     ])
   }
 
   async function launchCamera() {
     const perm = await ImagePicker.requestCameraPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Keine Berechtigung', 'Bitte erlaube Zugriff auf die Kamera.')
+      Alert.alert(t('editor.noPermission'), t('editor.cameraPermission'))
       return
     }
 
@@ -125,7 +127,7 @@ export default function RecipeEditorScreen() {
   async function launchGallery() {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Keine Berechtigung', 'Bitte erlaube Zugriff auf deine Fotos.')
+      Alert.alert(t('editor.noPermission'), t('editor.galleryPermission'))
       return
     }
 
@@ -150,7 +152,7 @@ export default function RecipeEditorScreen() {
   async function save() {
     try {
       setError(null)
-      if (!title.trim()) throw new Error('Bitte Titel eingeben')
+      if (!title.trim()) throw new Error(t('editor.titleRequired'))
       if (!household?.id) throw new Error('No household')
 
       const payload: Partial<Recipe> & { title: string; ingredients: string; steps: string } = {
@@ -185,7 +187,7 @@ export default function RecipeEditorScreen() {
         setPhotoUri(null)
       }
 
-      Alert.alert('Gespeichert', 'Gericht wurde gespeichert.')
+      Alert.alert(t('common.save'), t('editor.saved'))
       router.back()
     } catch (e: any) {
       console.error('[OurRecipeBook] saveRecipe failed', e)
@@ -195,10 +197,10 @@ export default function RecipeEditorScreen() {
 
   async function remove() {
     if (!id) return
-    Alert.alert('Löschen?', 'Gericht wirklich löschen?', [
-      { text: 'Abbrechen', style: 'cancel' },
+    Alert.alert(t('common.delete'), t('editor.deleteConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Löschen',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -206,7 +208,7 @@ export default function RecipeEditorScreen() {
             router.back()
           } catch (e: any) {
             console.error('[OurRecipeBook] deleteRecipe failed', e)
-            Alert.alert('Fehler', e?.message ?? 'Delete failed')
+            Alert.alert(t('common.error'), e?.message ?? 'Delete failed')
           }
         }
       }
@@ -217,8 +219,8 @@ export default function RecipeEditorScreen() {
     return (
       <Screen>
         <TopBar
-          title={isEdit ? 'Gericht' : 'Neues Gericht'}
-          left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+          title={isEdit ? t('editor.editTitle') : t('editor.newTitle')}
+          left={<Chip label={t('common.back')} onPress={() => router.back()} accessibilityLabel={t('common.back')} />}
         />
         <LoadingState />
       </Screen>
@@ -229,8 +231,8 @@ export default function RecipeEditorScreen() {
     return (
       <Screen>
         <TopBar
-          title={isEdit ? 'Gericht' : 'Neues Gericht'}
-          left={<Chip label="Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
+          title={isEdit ? t('editor.editTitle') : t('editor.newTitle')}
+          left={<Chip label={t('common.back')} onPress={() => router.back()} accessibilityLabel={t('common.back')} />}
         />
         <ErrorState message={error} onRetry={() => router.back()} />
       </Screen>
@@ -240,54 +242,54 @@ export default function RecipeEditorScreen() {
   return (
     <Screen scroll>
       <TopBar
-        title={isEdit ? 'Gericht bearbeiten' : 'Neues Gericht'}
-        left={<Chip label="←" onPress={() => router.back()} accessibilityLabel="Zurück" />}
-        right={<Chip label="✓ Speichern" onPress={save} accessibilityLabel="Gericht speichern" />}
+        title={isEdit ? t('editor.editTitle') : t('editor.newTitle')}
+        left={<Chip label="←" onPress={() => router.back()} accessibilityLabel={t('common.back')} />}
+        right={<Chip label={`✓ ${t('common.save')}`} onPress={save} accessibilityLabel={t('common.save')} />}
       />
 
       {error ? (
         <Card>
-          <Text style={{ color: t.danger, fontWeight: '800' }}>{error}</Text>
+          <Text style={{ color: theme.danger, fontWeight: '800' }}>{error}</Text>
         </Card>
       ) : null}
 
       {/* Primary: Title – most important, always visible */}
-      <Input label="Titel *" value={title} onChangeText={setTitle} placeholder="z.B. Spaghetti Bolognese" autoCapitalize="sentences" />
+      <Input label={`${t('editor.titleLabel')} *`} value={title} onChangeText={setTitle} placeholder={t('editor.titlePlaceholder')} autoCapitalize="sentences" />
 
       {/* Quick meta row: Photo + Favorite */}
       <Card>
         <View style={styles.photoRow}>
           <RecipeImage uri={previewPhoto} style={styles.photo} />
           <View style={styles.photoMeta}>
-            <Button title="Foto" variant="secondary" onPress={pickPhoto} />
-            <Chip label={favorite ? '★ Favorit' : '☆ Favorit'} selected={favorite} onPress={() => setFavorite((x) => !x)} />
+            <Button title={t('editor.photo')} variant="secondary" onPress={pickPhoto} />
+            <Chip label={favorite ? `★ ${t('editor.favorite')}` : `☆ ${t('editor.favorite')}`} selected={favorite} onPress={() => setFavorite((x) => !x)} />
           </View>
         </View>
       </Card>
 
       {/* Core content – what you need to cook */}
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>Was brauchst du?</Text>
-      <Input label="Zutaten" value={ingredients} onChangeText={setIngredients} placeholder="1 x Zwiebel&#10;400 g Hackfleisch&#10;1 Dose Tomaten" multiline />
+      <Text style={[styles.sectionLabel, { color: theme.muted }]}>{t('editor.whatYouNeed')}</Text>
+      <Input label={t('editor.ingredientsLabel')} value={ingredients} onChangeText={setIngredients} placeholder={t('editor.ingredientsPlaceholder')} multiline />
 
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>Wie geht's?</Text>
-      <Input label="Zubereitung" value={steps} onChangeText={setSteps} placeholder="1) Zwiebel anbraten&#10;2) Hack dazu&#10;3) Tomaten rein, köcheln" multiline />
+      <Text style={[styles.sectionLabel, { color: theme.muted }]}>{t('editor.howItGoes')}</Text>
+      <Input label={t('editor.stepsLabel')} value={steps} onChangeText={setSteps} placeholder={t('editor.stepsPlaceholder')} multiline />
 
       {/* Optional extras – collapsed feel */}
-      <Text style={[styles.sectionLabel, { color: t.muted }]}>Optional</Text>
+      <Text style={[styles.sectionLabel, { color: theme.muted }]}>{t('editor.optional')}</Text>
       <View style={styles.optionalRow}>
         <View style={styles.halfInput}>
-          <Input label="Portionen" value={portions} onChangeText={setPortions} placeholder="4" keyboardType="numeric" />
+          <Input label={t('editor.portionsLabel')} value={portions} onChangeText={setPortions} placeholder={t('editor.portionsPlaceholder')} keyboardType="numeric" />
         </View>
         <View style={styles.halfInput}>
-          <Input label="Tags" value={tagsRaw} onChangeText={setTagsRaw} placeholder="Schnell, Kinder" />
+          <Input label={t('editor.tagsLabel')} value={tagsRaw} onChangeText={setTagsRaw} placeholder={t('editor.tagsPlaceholder')} />
         </View>
       </View>
-      <Input label="Notizen" value={notes} onChangeText={setNotes} placeholder="Tipps, Varianten …" multiline />
+      <Input label={t('editor.notesLabel')} value={notes} onChangeText={setNotes} placeholder={t('editor.notesPlaceholder')} multiline />
 
       {/* Danger zone */}
       {id ? (
         <View style={styles.dangerZone}>
-          <Button title="Gericht löschen" variant="danger" onPress={remove} />
+          <Button title={t('editor.delete')} variant="danger" onPress={remove} />
         </View>
       ) : null}
     </Screen>

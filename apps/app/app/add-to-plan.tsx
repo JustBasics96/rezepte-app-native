@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { useTranslation } from 'react-i18next'
 
 import { useMealPlanWeek } from '../src/features/mealPlan'
 import { useRecipes } from '../src/features/recipes'
@@ -15,20 +16,9 @@ import { LoadingState, ErrorState, EmptyState } from '../src/ui/components/State
 import { RecipeImage } from '../src/ui/components/RecipeImage'
 import { useTheme } from '../src/ui/theme'
 
-const DAY_NAMES = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
-const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
-
-function formatDayHeader(isoDay: string, slot?: number) {
-  const d = new Date(isoDay + 'T00:00:00')
-  const dayStr = `${DAY_NAMES[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
-  if (slot !== undefined && slot >= 0) {
-    return `${dayStr} – ${SLOT_LABELS[slot]}`
-  }
-  return dayStr
-}
-
 export default function AddToPlan() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t, i18n } = useTranslation()
   const { day, slot: slotParam } = useLocalSearchParams<{ day?: string; slot?: string }>()
   const mealSlot = slotParam ? parseInt(slotParam, 10) : 0
   const plan = useMealPlanWeek(new Date())
@@ -38,6 +28,19 @@ export default function AddToPlan() {
   const [q, setQ] = useState('')
   const [favOnly, setFavOnly] = useState(false)
   const [tag, setTag] = useState<string | null>(null)
+
+  // Localized labels
+  const dayNames = t('days.long', { returnObjects: true }) as string[]
+  const slotLabels = [t('slots.breakfast'), t('slots.lunch'), t('slots.dinner'), t('slots.snack')]
+
+  function formatDayHeader(isoDay: string, slot?: number) {
+    const d = new Date(isoDay + 'T00:00:00')
+    const dayStr = `${dayNames[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
+    if (slot !== undefined && slot >= 0) {
+      return `${dayStr} – ${slotLabels[slot]}`
+    }
+    return dayStr
+  }
 
   // Smart sorting: favorites first, then by feedback score, then by lastCooked (recent = relevant)
   const filtered = useMemo(() => {
@@ -129,7 +132,7 @@ export default function AddToPlan() {
   if (recipes.loading || plan.loading) {
     return (
       <Screen>
-        <TopBar title="Gericht wählen" left={<Chip label="← Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar title={t('addToPlan.title')} left={<Chip label={`← ${t('common.back')}`} onPress={() => router.back()} accessibilityLabel={t('common.back')} />} />
         <LoadingState />
       </Screen>
     )
@@ -138,28 +141,28 @@ export default function AddToPlan() {
   if (recipes.error) {
     return (
       <Screen>
-        <TopBar title="Gericht wählen" left={<Chip label="← Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
+        <TopBar title={t('addToPlan.title')} left={<Chip label={`← ${t('common.back')}`} onPress={() => router.back()} accessibilityLabel={t('common.back')} />} />
         <ErrorState message={recipes.error} onRetry={recipes.refresh} />
       </Screen>
     )
   }
 
   // Day header text
-  const dayLabel = day ? formatDayHeader(day, mealSlot) : 'Gericht wählen'
+  const dayLabel = day ? formatDayHeader(day, mealSlot) : t('addToPlan.title')
 
   if (!filtered.length) {
     return (
       <Screen scroll>
-        <TopBar title={dayLabel} left={<Chip label="← Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />} />
-        <Input label="Suche" value={q} onChangeText={setQ} placeholder="z.B. Nudeln" />
+        <TopBar title={dayLabel} left={<Chip label={`← ${t('common.back')}`} onPress={() => router.back()} accessibilityLabel={t('common.back')} />} />
+        <Input label={t('common.search')} value={q} onChangeText={setQ} placeholder={t('recipes.searchPlaceholder')} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll} contentContainerStyle={styles.tagScrollContent}>
-          <Chip label="★ Favoriten" selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
-          <Chip label="🎲 Überrasch mich" onPress={surpriseMe} accessibilityLabel="Zufälliges Gericht wählen" />
+          <Chip label={`★ ${t('recipes.favorites')}`} selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
+          <Chip label={t('addToPlan.surprise')} onPress={surpriseMe} accessibilityLabel={t('addToPlan.surprise')} />
           {tags.map((x) => (
             <Chip key={x} label={x} selected={tag === x} onPress={() => setTag(tag === x ? null : x)} />
           ))}
         </ScrollView>
-        <EmptyState title="Keine Treffer" body="Versuch es mit weniger Filtern." />
+        <EmptyState title={t('recipes.noResults')} body={t('addToPlan.noRecipesHint')} />
       </Screen>
     )
   }
@@ -168,15 +171,15 @@ export default function AddToPlan() {
     <Screen scroll>
       <TopBar
         title={dayLabel}
-        left={<Chip label="← Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
-        right={<Chip label="Leeren" onPress={clearSlot} accessibilityLabel="Slot leeren" />}
+        left={<Chip label={`← ${t('common.back')}`} onPress={() => router.back()} accessibilityLabel={t('common.back')} />}
+        right={<Chip label={t('plan.clear')} onPress={clearSlot} accessibilityLabel={t('plan.clearSlot', { slot: slotLabels[mealSlot] })} />}
       />
 
-      <Input label="Suche" value={q} onChangeText={setQ} placeholder="z.B. Nudeln" />
+      <Input label={t('common.search')} value={q} onChangeText={setQ} placeholder={t('recipes.searchPlaceholder')} />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll} contentContainerStyle={styles.tagScrollContent}>
-        <Chip label="★ Favoriten" selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
-        <Chip label="🎲 Überrasch mich" onPress={surpriseMe} accessibilityLabel="Zufälliges Gericht wählen" />
+        <Chip label={`★ ${t('recipes.favorites')}`} selected={favOnly} onPress={() => setFavOnly((x) => !x)} />
+        <Chip label={t('addToPlan.surprise')} onPress={surpriseMe} accessibilityLabel={t('addToPlan.surprise')} />
         {tags.map((x) => (
           <Chip key={x} label={x} selected={tag === x} onPress={() => setTag(tag === x ? null : x)} />
         ))}
@@ -190,27 +193,27 @@ export default function AddToPlan() {
             key={r.id}
             onPress={() => choose(r.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Gericht wählen: ${r.title}`}
+            accessibilityLabel={r.title}
           >
             {({ pressed }) => (
-              <View style={[styles.recipeRow, { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.9 : 1 }]}>
+              <View style={[styles.recipeRow, { backgroundColor: theme.card, borderColor: theme.border, opacity: pressed ? 0.9 : 1 }]}>
                 <RecipeImage uri={photoUrl} style={styles.thumb} />
                 <View style={styles.recipeInfo}>
                   <View style={styles.titleRow}>
-                    <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
+                    <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
                       {r.title}
                     </Text>
-                    {r.is_favorite && <FontAwesome name="star" size={14} color={t.tint} />}
-                    {score > 0 && <Text style={[styles.badge, { backgroundColor: t.success + '20', color: t.success }]}>👍</Text>}
-                    {score < 0 && <Text style={[styles.badge, { backgroundColor: t.danger + '20', color: t.danger }]}>👎</Text>}
+                    {r.is_favorite && <FontAwesome name="star" size={14} color={theme.tint} />}
+                    {score > 0 && <Text style={[styles.badge, { backgroundColor: theme.success + '20', color: theme.success }]}>👍</Text>}
+                    {score < 0 && <Text style={[styles.badge, { backgroundColor: theme.danger + '20', color: theme.danger }]}>👎</Text>}
                   </View>
                   {r.tags?.length ? (
-                    <Text style={[styles.tags, { color: t.muted }]} numberOfLines={1}>
+                    <Text style={[styles.tags, { color: theme.muted }]} numberOfLines={1}>
                       {r.tags.slice(0, 3).join(' · ')}
                     </Text>
                   ) : null}
                 </View>
-                <FontAwesome name="chevron-right" size={14} color={t.muted} />
+                <FontAwesome name="chevron-right" size={14} color={theme.muted} />
               </View>
             )}
           </Pressable>

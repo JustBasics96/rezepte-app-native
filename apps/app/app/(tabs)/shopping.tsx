@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { useTranslation } from 'react-i18next'
 
 import { useMealPlanWeek } from '../../src/features/mealPlan'
 import { useRecipes } from '../../src/features/recipes'
@@ -14,7 +15,8 @@ import { LoadingState, ErrorState } from '../../src/ui/components/States'
 import { useTheme } from '../../src/ui/theme'
 
 export default function ShoppingTab() {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const week = useMealPlanWeek(new Date())
   const recipes = useRecipes()
   const shopping = useShoppingList()
@@ -36,10 +38,10 @@ export default function ShoppingTab() {
       setRebuilding(true)
       await week.refresh()
       await shopping.rebuildFromPlan(week.items, recipes.recipesById)
-      Alert.alert('Aktualisiert', 'Einkaufsliste wurde aus dem Wochenplan erstellt.')
+      Alert.alert(t('common.ok'), t('shopping.updated'))
     } catch (e: any) {
       console.error('[OurRecipeBook] rebuildShoppingList failed', e)
-      Alert.alert('Fehler', e?.message ?? 'Rebuild failed')
+      Alert.alert(t('common.error'), e?.message ?? 'Rebuild failed')
     } finally {
       setRebuilding(false)
     }
@@ -49,12 +51,12 @@ export default function ShoppingTab() {
   async function shareList() {
     const unchecked = shopping.items.filter((i) => !i.checked)
     if (!unchecked.length) {
-      Alert.alert('Liste leer', 'Alle Zutaten sind bereits abgehakt.')
+      Alert.alert(t('shopping.listEmpty'), t('shopping.allCheckedHint'))
       return
     }
 
     const text = unchecked.map((i) => `☐ ${i.text}`).join('\n')
-    const header = '🛒 Einkaufsliste\n\n'
+    const header = t('shopping.shoppingListHeader') + '\n\n'
 
     try {
       await Share.share({ message: header + text })
@@ -68,9 +70,9 @@ export default function ShoppingTab() {
     const checkedCount = shopping.items.filter((i) => i.checked).length
     if (!checkedCount) return
 
-    Alert.alert('Abgehakte löschen?', `${checkedCount} Einträge werden entfernt.`, [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Löschen', style: 'destructive', onPress: () => shopping.clearChecked() }
+    Alert.alert(t('shopping.deleteChecked'), t('shopping.deleteCheckedConfirm', { count: checkedCount }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => shopping.clearChecked() }
     ])
   }
 
@@ -84,9 +86,9 @@ export default function ShoppingTab() {
 
   // Remove single item
   function handleRemove(id: string, text: string) {
-    Alert.alert('Löschen?', `"${text}" entfernen?`, [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Löschen', style: 'destructive', onPress: () => shopping.removeItem(id) }
+    Alert.alert(t('shopping.deleteItem'), t('shopping.deleteItemConfirm', { text }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('common.delete'), style: 'destructive', onPress: () => shopping.removeItem(id) }
     ])
   }
 
@@ -108,7 +110,7 @@ export default function ShoppingTab() {
   if (shopping.loading || recipes.loading) {
     return (
       <Screen>
-        <TopBar title="Einkauf" />
+        <TopBar title={t('shopping.title')} />
         <LoadingState />
       </Screen>
     )
@@ -117,7 +119,7 @@ export default function ShoppingTab() {
   if (shopping.error) {
     return (
       <Screen>
-        <TopBar title="Einkauf" />
+        <TopBar title={t('shopping.title')} />
         <ErrorState message={shopping.error} onRetry={shopping.refresh} />
       </Screen>
     )
@@ -125,26 +127,26 @@ export default function ShoppingTab() {
 
   return (
     <Screen scroll>
-      <TopBar title="Einkauf" />
+      <TopBar title={t('shopping.title')} />
 
       {/* Manual add input */}
-      <View style={[styles.addRow, { backgroundColor: t.card, borderColor: t.border }]}>
+      <View style={[styles.addRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <TextInput
           ref={inputRef}
           value={newItem}
           onChangeText={setNewItem}
           onSubmitEditing={handleAddItem}
-          placeholder="＋ Eintrag hinzufügen …"
-          placeholderTextColor={t.muted}
+          placeholder={t('shopping.addPlaceholder')}
+          placeholderTextColor={theme.muted}
           returnKeyType="done"
           blurOnSubmit={false}
-          style={[styles.addInput, { color: t.text }]}
-          accessibilityLabel="Neuen Eintrag hinzufügen"
+          style={[styles.addInput, { color: theme.text }]}
+          accessibilityLabel={t('common.add')}
         />
         {newItem.trim().length > 0 && (
-          <Pressable onPress={handleAddItem} accessibilityLabel="Hinzufügen">
+          <Pressable onPress={handleAddItem} accessibilityLabel={t('common.add')}>
             {({ pressed }) => (
-              <Text style={[styles.addBtn, { color: t.tint, opacity: pressed ? 0.6 : 1 }]}>Hinzufügen</Text>
+              <Text style={[styles.addBtn, { color: theme.tint, opacity: pressed ? 0.6 : 1 }]}>{t('common.add')}</Text>
             )}
           </Pressable>
         )}
@@ -153,29 +155,28 @@ export default function ShoppingTab() {
       {/* Action row */}
       <View style={styles.actions}>
         <Chip
-          label={rebuilding ? '⏳ …' : '🔄 Aus Plan'}
+          label={rebuilding ? '⏳ …' : t('shopping.fromPlan')}
           onPress={rebuildList}
-          accessibilityLabel="Liste aus Wochenplan erstellen"
         />
-        <Chip label="📤 Teilen" onPress={shareList} accessibilityLabel="Liste teilen" />
+        <Chip label={t('shopping.share')} onPress={shareList} />
         {stats.checked > 0 && (
-          <Chip label="🗑 Abgehakte" onPress={clearChecked} accessibilityLabel="Abgehakte löschen" />
+          <Chip label={t('shopping.clearChecked')} onPress={clearChecked} />
         )}
       </View>
 
       {/* Progress */}
       {stats.total > 0 && (
         <View style={styles.progress}>
-          <View style={[styles.progressBar, { backgroundColor: t.border }]}>
+          <View style={[styles.progressBar, { backgroundColor: theme.border }]}>
             <View
               style={[
                 styles.progressFill,
-                { backgroundColor: t.success, width: `${(stats.checked / stats.total) * 100}%` }
+                { backgroundColor: theme.success, width: `${(stats.checked / stats.total) * 100}%` }
               ]}
             />
           </View>
-          <Text style={[styles.progressText, { color: t.muted }]}>
-            {stats.checked} von {stats.total} erledigt
+          <Text style={[styles.progressText, { color: theme.muted }]}>
+            {t('shopping.progress', { checked: stats.checked, total: stats.total })}
           </Text>
         </View>
       )}
@@ -183,9 +184,9 @@ export default function ShoppingTab() {
       {/* Empty state */}
       {!sorted.length && (
         <Card>
-          <Text style={[styles.emptyTitle, { color: t.text }]}>Noch keine Einkaufsliste</Text>
-          <Text style={[styles.emptyBody, { color: t.muted }]}>
-            Tippe auf "Aus Plan" um die Zutaten aus deinem Wochenplan zu sammeln.
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('shopping.emptyTitle')}</Text>
+          <Text style={[styles.emptyBody, { color: theme.muted }]}>
+            {t('shopping.emptyHint')}
           </Text>
         </Card>
       )}
@@ -204,47 +205,40 @@ export default function ShoppingTab() {
               style={[
                 styles.item,
                 {
-                  backgroundColor: t.card,
-                  borderColor: t.border,
+                  backgroundColor: theme.card,
+                  borderColor: theme.border,
                   opacity: pressed ? 0.85 : item.checked ? 0.6 : 1
                 }
               ]}
             >
-              <View style={[styles.checkbox, { borderColor: item.checked ? t.success : t.border, backgroundColor: item.checked ? t.success : 'transparent' }]}>
+              <View style={[styles.checkbox, { borderColor: item.checked ? theme.success : theme.border, backgroundColor: item.checked ? theme.success : 'transparent' }]}>
                 {item.checked && <FontAwesome name="check" size={12} color="#fff" />}
               </View>
               <Text
                 style={[
                   styles.itemText,
-                  { color: t.text, textDecorationLine: item.checked ? 'line-through' : 'none' }
+                  { color: theme.text, textDecorationLine: item.checked ? 'line-through' : 'none' }
                 ]}
                 numberOfLines={2}
               >
                 {item.text}
               </Text>
               {item.sourceRecipeIds.length > 1 && (
-                <Text style={[styles.countBadge, { color: t.muted }]}>
+                <Text style={[styles.countBadge, { color: theme.muted }]}>
                   ×{item.sourceRecipeIds.length}
                 </Text>
               )}
               <Pressable
                 onPress={() => handleRemove(item.id, item.text)}
                 hitSlop={8}
-                accessibilityLabel={`${item.text} löschen`}
+                accessibilityLabel={t('common.delete')}
               >
-                <FontAwesome name="times" size={14} color={t.muted} />
+                <FontAwesome name="times" size={14} color={theme.muted} />
               </Pressable>
             </View>
           )}
         </Pressable>
       ))}
-
-      {/* Footer hint */}
-      {sorted.length > 0 && (
-        <Text style={[styles.hint, { color: t.muted }]}>
-          Tippe zum Abhaken · Lang drücken zum Löschen
-        </Text>
-      )}
     </Screen>
   )
 }

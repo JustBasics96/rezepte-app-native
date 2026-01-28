@@ -1,0 +1,195 @@
+{
+  "common": {
+    "loading": "Lade …",
+    "error": "Fehler",
+    "retry": "Nochmal",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "copy": "Kopieren",
+    "share": "Teilen",
+    "search": "Suchen",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
+    "done": "Fertig",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "back": "Zurück",
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "version": "Version"
+  },
+
+  "tabs": {
+    "plan": "Plan",
+    "shopping": "Einkauf",
+    "recipes": "Gerichte",
+    "family": "Familie"
+  },
+
+  "slots": {
+    "breakfast": "Frühstück",
+    "lunch": "Mittag",
+    "dinner": "Abend",
+    "snack": "Snack"
+  },
+
+  "days": {
+    "short": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+    "long": ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+  },
+
+  "plan": {
+    "title": "Wochenplan",
+    "emptyWeek": "Diese Woche ist noch leer",
+    "emptyWeekHint": "Tippe auf + um Gerichte zu planen",
+    "chooseRecipe": "Gericht wählen",
+    "chooseSlot": "{{slot}} wählen",
+    "clearSlot": "{{slot}} leeren?",
+    "clearSlotConfirm": "{{day}} – {{slot}} wirklich leeren?",
+    "clear": "Leeren",
+    "pastDays": "Vergangene Tage",
+    "today": "Heute",
+    "markCooked": "Als gekocht markieren",
+    "markNotCooked": "Als nicht gekocht markieren",
+    "showRecipe": "{{title}} anzeigen",
+    "swapRecipe": "Anderes Gericht wählen"
+  },
+
+  "feedback": {
+    "title": "Wie war's?",
+    "hint": "Hilft beim Erinnern was gut funktioniert.",
+    "good": "👍 Gut!",
+    "bad": "👎 Naja",
+    "skip": "Überspringen"
+  },
+
+  "shopping": {
+    "title": "Einkauf",
+    "addPlaceholder": "＋ Eintrag hinzufügen …",
+    "fromPlan": "🔄 Aus Plan",
+    "share": "📤 Teilen",
+    "clearChecked": "🗑 Abgehakte",
+    "progress": "{{checked}} von {{total}} erledigt",
+    "emptyTitle": "Noch keine Einkaufsliste",
+    "emptyHint": "Tippe auf \"Aus Plan\" um die Zutaten aus deinem Wochenplan zu sammeln.",
+    "updated": "Einkaufsliste wurde aus dem Wochenplan erstellt.",
+    "listEmpty": "Liste leer",
+    "allCheckedHint": "Alle Zutaten sind bereits abgehakt.",
+    "deleteChecked": "Abgehakte löschen?",
+    "deleteCheckedConfirm": "{{count}} Einträge werden entfernt.",
+    "deleteItem": "Löschen?",
+    "deleteItemConfirm": "\"{{text}}\" entfernen?",
+    "shoppingListHeader": "🛒 Einkaufsliste"
+  },
+
+  "recipes": {
+    "title": "Gerichte",
+    "searchPlaceholder": "Gericht suchen …",
+    "sortRecent": "Kürzlich",
+    "sortAlpha": "A–Z",
+    "sortRating": "Beliebt",
+    "favorites": "Favoriten",
+    "allTags": "Alle Tags",
+    "newRecipe": "Neues Gericht",
+    "quickAddPlaceholder": "Schnell hinzufügen …",
+    "emptyTitle": "Noch keine Gerichte",
+    "emptyHint": "Tippe auf + um dein erstes Gericht anzulegen.",
+    "noResults": "Keine Treffer",
+    "timesGood": "{{count}}× gut",
+    "timesBad": "{{count}}× schlecht",
+    "lastCooked": "Zuletzt: {{when}}"
+  },
+
+  "editor": {
+    "newTitle": "Neues Gericht",
+    "editTitle": "Gericht bearbeiten",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "z.B. Spaghetti Bolognese",
+    "titleRequired": "Bitte Titel eingeben",
+    "portionsLabel": "Portionen",
+    "portionsPlaceholder": "z.B. 4",
+    "ingredientsLabel": "Zutaten",
+    "ingredientsPlaceholder": "250 g Nudeln\n1 Dose Tomaten\n...",
+    "stepsLabel": "Zubereitung",
+    "stepsPlaceholder": "Schritt für Schritt …",
+    "notesLabel": "Notizen",
+    "notesPlaceholder": "Tipps, Varianten …",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Schnell, Kinder, Vegetarisch",
+    "favorite": "Favorit",
+    "photo": "Foto",
+    "addPhoto": "Foto hinzufügen",
+    "changePhoto": "Foto ändern",
+    "photoSource": "Woher soll das Foto kommen?",
+    "camera": "Kamera",
+    "gallery": "Galerie",
+    "noPermission": "Keine Berechtigung",
+    "cameraPermission": "Bitte erlaube Zugriff auf die Kamera.",
+    "galleryPermission": "Bitte erlaube Zugriff auf deine Fotos.",
+    "saved": "Gericht wurde gespeichert.",
+    "deleteConfirm": "Gericht wirklich löschen?",
+    "whatYouNeed": "Was brauchst du?",
+    "howItGoes": "Wie geht's?",
+    "optional": "Optional",
+    "delete": "Gericht löschen"
+  },
+
+  "addToPlan": {
+    "title": "Gericht wählen",
+    "surprise": "🎲 Überrasch mich",
+    "noRecipes": "Keine Gerichte",
+    "noRecipesHint": "Lege zuerst ein paar Gerichte an."
+  },
+
+  "family": {
+    "title": "Familie",
+    "ratedRecipes": "Bewertete Rezepte",
+    "searchRecipe": "Rezept suchen …",
+    "noRatings": "Noch keine Bewertungen.",
+    "noResults": "Keine Treffer.",
+    "dailyPlanning": "Tägliche Planung",
+    "dailyPlanningHint": "Welche Mahlzeiten plant ihr?",
+    "familyCode": "Family Code",
+    "familyCodeHint": "Teile den Code, damit ein zweites Gerät beitreten kann.",
+    "copied": "Kopiert",
+    "copiedHint": "Family Code ist in der Zwischenablage.",
+    "connectWithCode": "Mit Code verbinden",
+    "codePlaceholder": "z.B. 4K7W2Q",
+    "connect": "Verbinden",
+    "connected": "Verbunden",
+    "connectedHint": "Ihr seid jetzt in einer gemeinsamen Familie.",
+    "logout": "Abmelden / Zurücksetzen",
+    "logoutConfirm": "Du wirst abgemeldet und dieses Gerät wird zurückgesetzt (lokale IDs werden gelöscht).",
+    "loggedOut": "Du bist abgemeldet. App erneut öffnen oder neu laden.",
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "language": "Sprache",
+    "languageHint": "App-Sprache ändern"
+  },
+
+  "onboarding": {
+    "step1Title": "Willkommen!",
+    "step1Body": "Unser Rezeptbuch hilft eurer Familie, den Wochenplan zu organisieren – damit niemand mehr fragt: \"Was gibt es heute?\"",
+    "step2Title": "Gerichte sammeln",
+    "step2Body": "Lege eure Lieblingsgerichte an – mit Zutaten, Foto und Tags wie \"Schnell\" oder \"Kinder\".",
+    "step3Title": "Woche planen",
+    "step3Body": "Ziehe Gerichte in den Wochenplan. Mit \"Überrasch mich\" bekommst du zufällige Vorschläge.",
+    "step4Title": "Einkaufen",
+    "step4Body": "Die Einkaufsliste erstellt sich automatisch aus dem Plan – oder füge manuell Sachen hinzu.",
+    "step5Title": "Familie verbinden",
+    "step5Body": "Teile den Family-Code und plant gemeinsam. Alle sehen den gleichen Plan!",
+    "letsGo": "Los gehts! 🚀"
+  },
+
+  "states": {
+    "offline": "Keine Internetverbindung. Bitte prüfe deine Verbindung und versuche es erneut.",
+    "errorDefault": "Ein Fehler ist aufgetreten."
+  },
+
+  "time": {
+    "weeksAgo_one": "vor {{count}} Woche",
+    "weeksAgo_other": "vor {{count}} Wochen"
+  }
+}

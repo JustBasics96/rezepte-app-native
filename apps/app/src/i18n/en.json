@@ -1,0 +1,195 @@
+{
+  "common": {
+    "loading": "Loading …",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "copy": "Copy",
+    "share": "Share",
+    "search": "Search",
+    "add": "Add",
+    "edit": "Edit",
+    "done": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "version": "Version"
+  },
+
+  "tabs": {
+    "plan": "Plan",
+    "shopping": "Shopping",
+    "recipes": "Recipes",
+    "family": "Family"
+  },
+
+  "slots": {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack"
+  },
+
+  "days": {
+    "short": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "long": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+  },
+
+  "plan": {
+    "title": "Week Plan",
+    "emptyWeek": "This week is empty",
+    "emptyWeekHint": "Tap + to add meals",
+    "chooseRecipe": "Choose recipe",
+    "chooseSlot": "Choose {{slot}}",
+    "clearSlot": "Clear {{slot}}?",
+    "clearSlotConfirm": "{{day}} – Really clear {{slot}}?",
+    "clear": "Clear",
+    "pastDays": "Past days",
+    "today": "Today",
+    "markCooked": "Mark as cooked",
+    "markNotCooked": "Mark as not cooked",
+    "showRecipe": "Show {{title}}",
+    "swapRecipe": "Choose different recipe"
+  },
+
+  "feedback": {
+    "title": "How was it?",
+    "hint": "Helps remember what works well.",
+    "good": "👍 Good!",
+    "bad": "👎 Meh",
+    "skip": "Skip"
+  },
+
+  "shopping": {
+    "title": "Shopping",
+    "addPlaceholder": "＋ Add item …",
+    "fromPlan": "🔄 From Plan",
+    "share": "📤 Share",
+    "clearChecked": "🗑 Checked",
+    "progress": "{{checked}} of {{total}} done",
+    "emptyTitle": "No shopping list yet",
+    "emptyHint": "Tap \"From Plan\" to collect ingredients from your week plan.",
+    "updated": "Shopping list created from week plan.",
+    "listEmpty": "List empty",
+    "allCheckedHint": "All items are already checked off.",
+    "deleteChecked": "Delete checked?",
+    "deleteCheckedConfirm": "{{count}} items will be removed.",
+    "deleteItem": "Delete?",
+    "deleteItemConfirm": "Remove \"{{text}}\"?",
+    "shoppingListHeader": "🛒 Shopping List"
+  },
+
+  "recipes": {
+    "title": "Recipes",
+    "searchPlaceholder": "Search recipes …",
+    "sortRecent": "Recent",
+    "sortAlpha": "A–Z",
+    "sortRating": "Popular",
+    "favorites": "Favorites",
+    "allTags": "All Tags",
+    "newRecipe": "New Recipe",
+    "quickAddPlaceholder": "Quick add …",
+    "emptyTitle": "No recipes yet",
+    "emptyHint": "Tap + to create your first recipe.",
+    "noResults": "No results",
+    "timesGood": "{{count}}× good",
+    "timesBad": "{{count}}× bad",
+    "lastCooked": "Last: {{when}}"
+  },
+
+  "editor": {
+    "newTitle": "New Recipe",
+    "editTitle": "Edit Recipe",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Spaghetti Bolognese",
+    "titleRequired": "Please enter a title",
+    "portionsLabel": "Servings",
+    "portionsPlaceholder": "e.g. 4",
+    "ingredientsLabel": "Ingredients",
+    "ingredientsPlaceholder": "250 g pasta\n1 can tomatoes\n...",
+    "stepsLabel": "Instructions",
+    "stepsPlaceholder": "Step by step …",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Tips, variations …",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Quick, Kids, Vegetarian",
+    "favorite": "Favorite",
+    "photo": "Photo",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "photoSource": "Where should the photo come from?",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "noPermission": "No permission",
+    "cameraPermission": "Please allow camera access.",
+    "galleryPermission": "Please allow photo library access.",
+    "saved": "Recipe saved.",
+    "deleteConfirm": "Really delete this recipe?",
+    "whatYouNeed": "What you need",
+    "howItGoes": "How it's done",
+    "optional": "Optional",
+    "delete": "Delete Recipe"
+  },
+
+  "addToPlan": {
+    "title": "Choose Recipe",
+    "surprise": "🎲 Surprise me",
+    "noRecipes": "No recipes",
+    "noRecipesHint": "Create some recipes first."
+  },
+
+  "family": {
+    "title": "Family",
+    "ratedRecipes": "Rated Recipes",
+    "searchRecipe": "Search recipe …",
+    "noRatings": "No ratings yet.",
+    "noResults": "No results.",
+    "dailyPlanning": "Daily Planning",
+    "dailyPlanningHint": "Which meals do you plan?",
+    "familyCode": "Family Code",
+    "familyCodeHint": "Share this code so another device can join.",
+    "copied": "Copied",
+    "copiedHint": "Family code is in the clipboard.",
+    "connectWithCode": "Connect with Code",
+    "codePlaceholder": "e.g. 4K7W2Q",
+    "connect": "Connect",
+    "connected": "Connected",
+    "connectedHint": "You are now in a shared family.",
+    "logout": "Log out / Reset",
+    "logoutConfirm": "You will be logged out and this device will be reset (local IDs will be deleted).",
+    "loggedOut": "You are logged out. Reopen or reload the app.",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "language": "Language",
+    "languageHint": "Change app language"
+  },
+
+  "onboarding": {
+    "step1Title": "Welcome!",
+    "step1Body": "Our Recipebook helps your family organize the week plan – so no one asks \"What's for dinner?\" anymore.",
+    "step2Title": "Collect Recipes",
+    "step2Body": "Add your favorite recipes – with ingredients, photo, and tags like \"Quick\" or \"Kids\".",
+    "step3Title": "Plan the Week",
+    "step3Body": "Drag recipes into the week plan. Use \"Surprise me\" for random suggestions.",
+    "step4Title": "Shopping",
+    "step4Body": "The shopping list is created automatically from the plan – or add items manually.",
+    "step5Title": "Connect Family",
+    "step5Body": "Share the family code and plan together. Everyone sees the same plan!",
+    "letsGo": "Let's go! 🚀"
+  },
+
+  "states": {
+    "offline": "No internet connection. Please check your connection and try again.",
+    "errorDefault": "An error occurred."
+  },
+
+  "time": {
+    "weeksAgo_one": "{{count}} week ago",
+    "weeksAgo_other": "{{count}} weeks ago"
+  }
+}

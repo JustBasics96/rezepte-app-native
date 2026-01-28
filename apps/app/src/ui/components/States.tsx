@@ -1,23 +1,26 @@
 import React from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../theme'
 
-export function LoadingState({ label = 'Lade…' }: { label?: string }) {
-  const t = useTheme()
+export function LoadingState({ label }: { label?: string }) {
+  const theme = useTheme()
+  const { t } = useTranslation()
+  const text = label ?? t('common.loading')
   return (
     <View style={styles.center}>
       <ActivityIndicator />
-      <Text style={[styles.text, { color: t.muted }]}>{label}</Text>
+      <Text style={[styles.text, { color: theme.muted }]}>{text}</Text>
     </View>
   )
 }
 
 export function EmptyState({ title, body }: { title: string; body?: string }) {
-  const t = useTheme()
+  const theme = useTheme()
   return (
     <View style={styles.center}>
-      <Text style={[styles.title, { color: t.text }]}>{title}</Text>
-      {body ? <Text style={[styles.text, { color: t.muted }]}>{body}</Text> : null}
+      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      {body ? <Text style={[styles.text, { color: theme.muted }]}>{body}</Text> : null}
     </View>
   )
 }
@@ -35,22 +38,23 @@ function isOfflineError(msg: string) {
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
-  const t = useTheme()
+  const theme = useTheme()
+  const { t } = useTranslation()
   const isOffline = isOfflineError(message)
   
-  const displayTitle = isOffline ? '📡 Keine Verbindung' : '⚠️ Fehler'
+  const displayTitle = isOffline ? `📡 ${t('states.offline').split('.')[0]}` : `⚠️ ${t('common.error')}`
   const displayBody = isOffline 
-    ? 'Prüfe deine Internetverbindung und versuche es erneut.'
+    ? t('states.offline')
     : message
 
   return (
     <View style={styles.center}>
       <Text style={styles.errorEmoji}>{isOffline ? '📡' : '⚠️'}</Text>
-      <Text style={[styles.title, { color: t.text }]}>{displayTitle}</Text>
-      <Text style={[styles.text, { color: t.muted }]}>{displayBody}</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{displayTitle}</Text>
+      <Text style={[styles.text, { color: theme.muted }]}>{displayBody}</Text>
       {onRetry ? (
-        <Pressable onPress={onRetry} accessibilityRole="button" style={({ pressed }) => [styles.retry, { backgroundColor: t.tint, opacity: pressed ? 0.8 : 1 }]}> 
-          <Text style={styles.retryText}>Erneut versuchen</Text>
+        <Pressable onPress={onRetry} accessibilityRole="button" style={({ pressed }) => [styles.retry, { backgroundColor: theme.tint, opacity: pressed ? 0.8 : 1 }]}> 
+          <Text style={styles.retryText}>{t('common.retry')}</Text>
         </Pressable>
       ) : null}
     </View>

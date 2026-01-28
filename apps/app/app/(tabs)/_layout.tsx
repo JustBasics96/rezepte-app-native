@@ -1,6 +1,7 @@
 import React from 'react'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { Tabs } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 import { useTheme } from '../../src/ui/theme'
 
@@ -10,6 +11,8 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['nam
 
 export default function TabLayout() {
   const t = useTheme()
+  const { t: tr } = useTranslation()
+
   return (
     <Tabs
       initialRouteName="plan"
@@ -22,19 +25,19 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="plan"
-        options={{ title: 'Plan', tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} /> }}
+        options={{ title: tr('tabs.plan'), tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} /> }}
       />
       <Tabs.Screen
         name="shopping"
-        options={{ title: 'Einkauf', tabBarIcon: ({ color }) => <TabBarIcon name="shopping-cart" color={color} /> }}
+        options={{ title: tr('tabs.shopping'), tabBarIcon: ({ color }) => <TabBarIcon name="shopping-cart" color={color} /> }}
       />
       <Tabs.Screen
         name="recipes/index"
-        options={{ title: 'Gerichte', tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} /> }}
+        options={{ title: tr('tabs.recipes'), tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} /> }}
       />
       <Tabs.Screen
         name="family"
-        options={{ title: 'Familie', tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} /> }}
+        options={{ title: tr('tabs.family'), tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} /> }}
       />
     </Tabs>
   )
