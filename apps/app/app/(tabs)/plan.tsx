@@ -7,6 +7,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useMealPlanWeek } from '../../src/features/mealPlan'
 import { useRecipes } from '../../src/features/recipes'
 import { useCookFeedback } from '../../src/features/cookFeedback'
+import { useHousehold } from '../../src/providers/HouseholdProvider'
 import { publicPhotoUrl } from '../../src/features/photos'
 import { Screen } from '../../src/ui/components/Screen'
 import { TopBar } from '../../src/ui/components/TopBar'
@@ -16,6 +17,7 @@ import { useTheme } from '../../src/ui/theme'
 
 const DAY_NAMES_SHORT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 const DAY_NAMES_LONG = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
 
 function formatDay(isoDay: string, long = false) {
   const d = new Date(isoDay + 'T00:00:00')
@@ -38,6 +40,7 @@ function isPast(isoDay: string) {
 
 export default function PlanScreen() {
   const t = useTheme()
+  const { mealsPerDay } = useHousehold()
   const [weekOffset, setWeekOffset] = useState(0)
 
   const anchorDate = useMemo(() => {
@@ -70,16 +73,17 @@ export default function PlanScreen() {
   const [showPast, setShowPast] = useState(false)
 
   // Handlers
-  function onPickRecipe(day: string) {
-    router.push({ pathname: '/add-to-plan', params: { day } })
+  function onPickRecipe(day: string, slot: number) {
+    router.push({ pathname: '/add-to-plan', params: { day, slot: String(slot) } })
   }
 
-  async function onMarkCooked(day: string) {
-    const it = week.byDay.get(day)
+  async function onMarkCooked(day: string, slot: number) {
+    const key = `${day}:${slot}`
+    const it = week.byDaySlot.get(key)
     if (!it?.recipe_id) return
 
     const next = it.status === 'cooked' ? 'planned' : 'cooked'
-    await week.setStatus(day, next)
+    await week.setStatus(day, next, slot)
 
     if (next === 'cooked') {
       try {
@@ -95,10 +99,11 @@ export default function PlanScreen() {
     }
   }
 
-  async function onClearDay(day: string) {
-    Alert.alert('Tag leeren?', `${formatDay(day, true)} wirklich leeren?`, [
+  async function onClearSlot(day: string, slot: number) {
+    const slotName = mealsPerDay > 1 ? SLOT_LABELS[slot] : 'Mahlzeit'
+    Alert.alert(`${slotName} leeren?`, `${formatDay(day, true)} – ${slotName} wirklich leeren?`, [
       { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Leeren', style: 'destructive', onPress: () => week.setDay(day, null) }
+      { text: 'Leeren', style: 'destructive', onPress: () => week.setDay(day, null, slot) }
     ])
   }
 
@@ -108,91 +113,107 @@ export default function PlanScreen() {
     return `${formatDay(week.days[0])} – ${formatDay(week.days[week.days.length - 1])}`
   }, [week.days])
 
-  // Render a single day card
-  function DayCard({ day }: { day: string }) {
-    const it = week.byDay.get(day)
+  // Render a single meal slot row
+  function MealSlot({ day, slot, showSlotLabel }: { day: string; slot: number; showSlotLabel: boolean }) {
+    const key = `${day}:${slot}`
+    const it = week.byDaySlot.get(key)
     const hasRecipe = !!it?.recipe_id
     const isCooked = it?.status === 'cooked'
-    const isTodayCard = isToday(day)
-    const isPastDay = isPast(day)
 
     const recipe = hasRecipe && it?.recipe_id ? recipes.recipesById.get(it.recipe_id) : null
     const title = recipe?.title ?? it?.recipe?.title ?? null
     const photoUrl = publicPhotoUrl(recipe?.photo_path ?? it?.recipe?.photo_path ?? null)
 
     return (
-      <Pressable onPress={() => onPickRecipe(day)} accessibilityLabel={`${formatDay(day, true)}: Gericht wählen`}>
-        {({ pressed }) => (
-          <View
-            style={[
-              styles.dayCard,
-              {
-                backgroundColor: isTodayCard ? t.tint + '15' : t.card,
-                borderColor: isTodayCard ? t.tint : t.border,
-                opacity: pressed ? 0.9 : isPastDay ? 0.7 : 1
-              }
-            ]}
+      <View style={styles.slotRow}>
+        {showSlotLabel && (
+          <Text style={[styles.slotLabel, { color: t.muted }]}>{SLOT_LABELS[slot]}</Text>
+        )}
+        {hasRecipe ? (
+          <Pressable 
+            style={styles.slotContent} 
+            onPress={() => onPickRecipe(day, slot)}
+            accessibilityLabel={`${SLOT_LABELS[slot]}: ${title}`}
           >
-            {/* Day header */}
-            <View style={styles.dayHeader}>
-              <View style={styles.dayLabelRow}>
-                {isTodayCard && (
-                  <View style={[styles.todayBadge, { backgroundColor: t.tint }]}>
-                    <Text style={styles.todayText}>Heute</Text>
-                  </View>
-                )}
-                <Text style={[styles.dayName, { color: isTodayCard ? t.tint : t.muted }]}>
-                  {formatDay(day, true)}
+            <RecipeImage uri={photoUrl} style={styles.recipeImage} />
+            <View style={styles.recipeInfo}>
+              <Text style={[styles.recipeTitle, { color: t.text }]} numberOfLines={1}>
+                {title}
+              </Text>
+              {recipe?.tags?.length ? (
+                <Text style={[styles.recipeTags, { color: t.muted }]} numberOfLines={1}>
+                  {recipe.tags.slice(0, 2).join(' · ')}
                 </Text>
-              </View>
-              {hasRecipe && (
-                <Pressable
-                  onPress={() => onClearDay(day)}
-                  hitSlop={12}
-                  accessibilityLabel="Tag leeren"
-                >
-                  <FontAwesome name="times" size={16} color={t.muted} />
-                </Pressable>
-              )}
+              ) : null}
             </View>
+            <Pressable
+              onPress={() => onMarkCooked(day, slot)}
+              style={[
+                styles.cookedButton,
+                { backgroundColor: isCooked ? t.success : t.card, borderColor: isCooked ? t.success : t.border }
+              ]}
+              accessibilityLabel={isCooked ? 'Als nicht gekocht markieren' : 'Als gekocht markieren'}
+            >
+              <Text style={[styles.cookedIcon, { color: isCooked ? '#fff' : t.muted }]}>
+                {isCooked ? '✓' : '○'}
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => onClearSlot(day, slot)} hitSlop={10} accessibilityLabel="Slot leeren">
+              <FontAwesome name="times" size={14} color={t.muted} />
+            </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable 
+            style={styles.emptySlot} 
+            onPress={() => onPickRecipe(day, slot)}
+            accessibilityLabel={`${SLOT_LABELS[slot]}: Gericht wählen`}
+          >
+            <FontAwesome name="plus" size={14} color={t.tint} />
+            <Text style={[styles.emptyText, { color: t.tint }]}>
+              {showSlotLabel ? 'Gericht wählen' : `${SLOT_LABELS[slot]} wählen`}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    )
+  }
 
-            {/* Content */}
-            {hasRecipe ? (
-              <View style={styles.recipeRow}>
-                <RecipeImage uri={photoUrl} style={styles.recipeImage} />
-                <View style={styles.recipeInfo}>
-                  <Text style={[styles.recipeTitle, { color: t.text }]} numberOfLines={2}>
-                    {title}
-                  </Text>
-                  {recipe?.tags?.length ? (
-                    <Text style={[styles.recipeTags, { color: t.muted }]} numberOfLines={1}>
-                      {recipe.tags.slice(0, 3).join(' · ')}
-                    </Text>
-                  ) : null}
-                </View>
-                {/* Cooked button - always visible */}
-                <Pressable
-                  onPress={() => onMarkCooked(day)}
-                  style={[
-                    styles.cookedButton,
-                    { backgroundColor: isCooked ? t.success : t.card, borderColor: isCooked ? t.success : t.border }
-                  ]}
-                  accessibilityLabel={isCooked ? 'Als nicht gekocht markieren' : 'Als gekocht markieren'}
-                >
-                  <Text style={[styles.cookedIcon, { color: isCooked ? '#fff' : t.muted }]}>
-                    {isCooked ? '✓' : '○'}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.emptyRow}>
-                <FontAwesome name="plus" size={16} color={t.tint} />
-                <Text style={[styles.emptyText, { color: t.tint }]}>Gericht wählen</Text>
+  // Render a day card with all slots
+  function DayCard({ day }: { day: string }) {
+    const isTodayCard = isToday(day)
+    const isPastDay = isPast(day)
+    const showSlotLabels = mealsPerDay > 1
+
+    return (
+      <View
+        style={[
+          styles.dayCard,
+          {
+            backgroundColor: isTodayCard ? t.tint + '15' : t.card,
+            borderColor: isTodayCard ? t.tint : t.border,
+            opacity: isPastDay ? 0.7 : 1
+          }
+        ]}
+      >
+        {/* Day header */}
+        <View style={styles.dayHeader}>
+          <View style={styles.dayLabelRow}>
+            {isTodayCard && (
+              <View style={[styles.todayBadge, { backgroundColor: t.tint }]}>
+                <Text style={styles.todayText}>Heute</Text>
               </View>
             )}
+            <Text style={[styles.dayName, { color: isTodayCard ? t.tint : t.muted }]}>
+              {formatDay(day, true)}
+            </Text>
           </View>
-        )}
-      </Pressable>
+        </View>
+
+        {/* Meal slots */}
+        {Array.from({ length: mealsPerDay }, (_, i) => (
+          <MealSlot key={i} day={day} slot={i} showSlotLabel={showSlotLabels} />
+        ))}
+      </View>
     )
   }
 
@@ -273,7 +294,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10
+    marginBottom: 8
   },
   dayLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   todayBadge: {
@@ -283,20 +304,22 @@ const styles = StyleSheet.create({
   },
   todayText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   dayName: { fontSize: 14, fontWeight: '700' },
-  recipeRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  recipeImage: { width: 64, height: 48, borderRadius: 10 },
-  recipeInfo: { flex: 1, gap: 2 },
-  recipeTitle: { fontSize: 16, fontWeight: '800' },
-  recipeTags: { fontSize: 12, fontWeight: '600' },
+  slotRow: { marginTop: 6 },
+  slotLabel: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
+  slotContent: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  recipeImage: { width: 52, height: 40, borderRadius: 8 },
+  recipeInfo: { flex: 1, gap: 1 },
+  recipeTitle: { fontSize: 14, fontWeight: '800' },
+  recipeTags: { fontSize: 11, fontWeight: '600' },
   cookedButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  cookedIcon: { fontSize: 20, fontWeight: '700' },
-  emptyRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
-  emptyText: { fontSize: 15, fontWeight: '700' }
+  cookedIcon: { fontSize: 16, fontWeight: '700' },
+  emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
+  emptyText: { fontSize: 13, fontWeight: '700' }
 })

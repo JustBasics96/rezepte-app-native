@@ -17,7 +17,7 @@ import { useTheme } from '../../src/ui/theme'
 
 export default function FamilyTab() {
   const t = useTheme()
-  const { ready, household, joinCode, error, joinByCode, reset } = useHousehold()
+  const { ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset } = useHousehold()
   const recipes = useRecipes()
   const feedback = useCookFeedback()
   const [code, setCode] = useState('')
@@ -149,6 +149,34 @@ export default function FamilyTab() {
         )}
       </Card>
 
+      {/* Mahlzeiten-Einstellung */}
+      <Card>
+        <Text style={[styles.h, { color: t.text }]}>Tägliche Planung</Text>
+        <Text style={[styles.hint, { color: t.muted, marginBottom: 10 }]}>
+          Wie viele Mahlzeiten plant ihr pro Tag?
+        </Text>
+        <View style={styles.mealButtons}>
+          {[1, 2, 3, 4].map((n) => (
+            <Pressable
+              key={n}
+              onPress={() => setMealsPerDay(n)}
+              style={[
+                styles.mealButton,
+                { borderColor: mealsPerDay === n ? t.tint : t.border, backgroundColor: mealsPerDay === n ? t.tint + '20' : t.card }
+              ]}
+              accessibilityRole="radio"
+              accessibilityLabel={`${n} ${n === 1 ? 'Mahlzeit' : 'Mahlzeiten'} pro Tag`}
+              accessibilityState={{ checked: mealsPerDay === n }}
+            >
+              <Text style={[styles.mealButtonNum, { color: mealsPerDay === n ? t.tint : t.text }]}>{n}</Text>
+              <Text style={[styles.mealButtonLabel, { color: mealsPerDay === n ? t.tint : t.muted }]}>
+                {n === 1 ? 'Mahlzeit' : 'Mahlzeiten'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </Card>
+
       {/* Family Code – kompakt */}
       <Card>
         <View style={styles.rowBetween}>
@@ -201,6 +229,16 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     fontSize: 14
   },
+  mealButtons: { flexDirection: 'row', gap: 10 },
+  mealButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 2
+  },
+  mealButtonNum: { fontSize: 22, fontWeight: '900' },
+  mealButtonLabel: { fontSize: 10, fontWeight: '700', marginTop: 2 },
   feedbackRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 },
   feedbackContent: { flex: 1 },
   feedbackTitle: { fontSize: 14, fontWeight: '800' },

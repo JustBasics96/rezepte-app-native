@@ -16,15 +16,21 @@ import { RecipeImage } from '../src/ui/components/RecipeImage'
 import { useTheme } from '../src/ui/theme'
 
 const DAY_NAMES = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+const SLOT_LABELS = ['Frühstück', 'Mittag', 'Abend', 'Snack']
 
-function formatDayHeader(isoDay: string) {
+function formatDayHeader(isoDay: string, slot?: number) {
   const d = new Date(isoDay + 'T00:00:00')
-  return `${DAY_NAMES[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
+  const dayStr = `${DAY_NAMES[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
+  if (slot !== undefined && slot >= 0) {
+    return `${dayStr} – ${SLOT_LABELS[slot]}`
+  }
+  return dayStr
 }
 
 export default function AddToPlan() {
   const t = useTheme()
-  const { day } = useLocalSearchParams<{ day?: string }>()
+  const { day, slot: slotParam } = useLocalSearchParams<{ day?: string; slot?: string }>()
+  const mealSlot = slotParam ? parseInt(slotParam, 10) : 0
   const plan = useMealPlanWeek(new Date())
   const recipes = useRecipes()
   const feedback = useCookFeedback()
@@ -85,13 +91,13 @@ export default function AddToPlan() {
 
   async function choose(recipeId: string) {
     if (!day) return
-    await plan.setDay(day, recipeId)
+    await plan.setDay(day, recipeId, mealSlot)
     router.back()
   }
 
-  async function clearDay() {
+  async function clearSlot() {
     if (!day) return
-    await plan.setDay(day, null)
+    await plan.setDay(day, null, mealSlot)
     router.back()
   }
 
@@ -114,7 +120,7 @@ export default function AddToPlan() {
   }
 
   // Day header text
-  const dayLabel = day ? formatDayHeader(day) : 'Gericht wählen'
+  const dayLabel = day ? formatDayHeader(day, mealSlot) : 'Gericht wählen'
 
   if (!filtered.length) {
     return (
@@ -137,7 +143,7 @@ export default function AddToPlan() {
       <TopBar
         title={dayLabel}
         left={<Chip label="← Zurück" onPress={() => router.back()} accessibilityLabel="Zurück" />}
-        right={<Chip label="Leeren" onPress={clearDay} accessibilityLabel="Tag leeren" />}
+        right={<Chip label="Leeren" onPress={clearSlot} accessibilityLabel="Slot leeren" />}
       />
 
       <Input label="Suche" value={q} onChangeText={setQ} placeholder="z.B. Nudeln" />

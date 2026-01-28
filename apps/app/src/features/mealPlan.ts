@@ -43,20 +43,31 @@ export function useMealPlanWeek(anchorDate = new Date()) {
     return m
   }, [state.items])
 
+  // Multi-slot: Map key = "day:slot"
+  const byDaySlot = useMemo(() => {
+    const m = new Map<string, MealPlanItem>()
+    for (const it of state.items) {
+      const key = `${it.day}:${it.meal_slot ?? 0}`
+      m.set(key, it)
+    }
+    return m
+  }, [state.items])
+
   const setDay = useCallback(
-    async (day: string, recipeId: string | null) => {
+    async (day: string, recipeId: string | null, mealSlot: number = 0) => {
       if (!household?.id) throw new Error('No household')
-      const { data, error } = await setMealPlanDay(supabase as any, household.id, day, recipeId)
+      const { data, error } = await setMealPlanDay(supabase as any, household.id, day, recipeId, mealSlot)
       if (error) throw error
+      const key = `${day}:${mealSlot}`
       // If deleted: refresh, else update local
       if (!recipeId) {
-        setState((s) => ({ ...s, items: s.items.filter((x) => x.day !== day) }))
+        setState((s) => ({ ...s, items: s.items.filter((x) => `${x.day}:${x.meal_slot ?? 0}` !== key) }))
         return null
       }
       const saved = data as any as MealPlanItem
       setState((s) => {
-        const next = s.items.filter((x) => x.day !== day)
-        return { ...s, items: [...next, saved].sort((a, b) => a.day.localeCompare(b.day)) }
+        const next = s.items.filter((x) => `${x.day}:${x.meal_slot ?? 0}` !== key)
+        return { ...s, items: [...next, saved].sort((a, b) => a.day.localeCompare(b.day) || (a.meal_slot ?? 0) - (b.meal_slot ?? 0)) }
       })
       return saved
     },
@@ -64,14 +75,15 @@ export function useMealPlanWeek(anchorDate = new Date()) {
   )
 
   const setStatus = useCallback(
-    async (day: string, status: MealPlanItem['status']) => {
+    async (day: string, status: MealPlanItem['status'], mealSlot: number = 0) => {
       if (!household?.id) throw new Error('No household')
-      const { data, error } = await setMealPlanStatus(supabase as any, household.id, day, status)
+      const { data, error } = await setMealPlanStatus(supabase as any, household.id, day, status, mealSlot)
       if (error) throw error
       const saved = data as any as MealPlanItem
+      const key = `${day}:${mealSlot}`
       setState((s) => {
-        const next = s.items.filter((x) => x.day !== day)
-        return { ...s, items: [...next, saved].sort((a, b) => a.day.localeCompare(b.day)) }
+        const next = s.items.filter((x) => `${x.day}:${x.meal_slot ?? 0}` !== key)
+        return { ...s, items: [...next, saved].sort((a, b) => a.day.localeCompare(b.day) || (a.meal_slot ?? 0) - (b.meal_slot ?? 0)) }
       })
       return saved
     },
@@ -89,6 +101,7 @@ export function useMealPlanWeek(anchorDate = new Date()) {
     to: range.to,
     days: range.days,
     byDay,
+    byDaySlot,
     refresh,
     setDay,
     setStatus,

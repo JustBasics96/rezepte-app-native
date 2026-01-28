@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { Household } from '@our-recipebook/core'
-import { createHousehold, getHousehold, joinHousehold } from '@our-recipebook/core'
+import { createHousehold, getHousehold, joinHousehold, updateHouseholdSettings } from '@our-recipebook/core'
 
 import { kv } from '../platform/storage'
 import { supabase } from '../platform/supabase'
@@ -13,8 +13,10 @@ type HouseholdState = {
   ready: boolean
   household: Household | null
   joinCode: string | null
+  mealsPerDay: number
   error: string | null
   joinByCode: (code: string) => Promise<void>
+  setMealsPerDay: (count: number) => Promise<void>
   reset: () => Promise<void>
 }
 
@@ -24,6 +26,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   const { user } = useSession()
   const [household, setHousehold] = useState<Household | null>(null)
   const [joinCode, setJoinCode] = useState<string | null>(null)
+  const [mealsPerDay, setMealsPerDayState] = useState(2)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,6 +45,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
             if (mounted) {
               setHousehold(data as Household)
               setJoinCode(data.join_code)
+              setMealsPerDayState(data.meals_per_day ?? 2)
             }
             return
           }
@@ -61,8 +65,9 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
         await kv.setString(KEY_JOIN_CODE, created.join_code)
 
         if (mounted) {
-          setHousehold(created)
+          setHousehold({ ...created, meals_per_day: created.meals_per_day ?? 2 })
           setJoinCode(created.join_code)
+          setMealsPerDayState(created.meals_per_day ?? 2)
         }
       } catch (e: any) {
         console.error('[OurRecipeBook] Household init failed', e)
@@ -88,9 +93,33 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
 
     await kv.setString(KEY_HOUSEHOLD_ID, joined.id)
     await kv.setString(KEY_JOIN_CODE, joined.join_code)
-    setHousehold(joined)
+    setHousehold({ ...joined, meals_per_day: joined.meals_per_day ?? 2 })
     setJoinCode(joined.join_code)
+    setMealsPerDayState(joined.meals_per_day ?? 2)
   }, [])
+
+  const setMealsPerDay = useCallback(async (count: number) => {
+    if (!household?.id) return
+    const clamped = Math.max(1, Math.min(4, count))
+
+    // Optimistic update
+    setMealsPerDayState(clamped)
+
+    const { data, error: uErr } = await updateHouseholdSettings(supabase as any, household.id, {
+      meals_per_day: clamped
+    })
+
+    if (uErr) {
+      console.error('[OurRecipeBook] Failed to update meals_per_day', uErr)
+      // Revert on error
+      setMealsPerDayState(household.meals_per_day ?? 2)
+      return
+    }
+
+    if (data) {
+      setHousehold(data as Household)
+    }
+  }, [household?.id, household?.meals_per_day])
 
   const reset = useCallback(async () => {
     // Simple + robust: clear local IDs and sign out. Next startup recreates an anonymous session + household.
@@ -102,8 +131,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ ready, household, joinCode, error, joinByCode, reset }),
-    [ready, household, joinCode, error, joinByCode, reset]
+    () => ({ ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset }),
+    [ready, household, joinCode, mealsPerDay, error, joinByCode, setMealsPerDay, reset]
   )
 
   return <HouseholdCtx.Provider value={value}>{children}</HouseholdCtx.Provider>

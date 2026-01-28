@@ -34,27 +34,45 @@ export async function listMealPlan(sb: SupabaseClient, fromDay: string, toDay: s
     .order('day', { ascending: true })
 }
 
-export async function setMealPlanDay(sb: SupabaseClient, householdId: string, day: string, recipeId: string | null) {
+export async function setMealPlanDay(
+  sb: SupabaseClient,
+  householdId: string,
+  day: string,
+  recipeId: string | null,
+  mealSlot: number = 0
+) {
   if (!recipeId) {
-    return await sb.from('meal_plan').delete().eq('day', day).eq('household_id', householdId)
+    return await sb
+      .from('meal_plan')
+      .delete()
+      .eq('day', day)
+      .eq('household_id', householdId)
+      .eq('meal_slot', mealSlot)
   }
 
   return await sb
     .from('meal_plan')
     .upsert(
-      { household_id: householdId, day, recipe_id: recipeId, status: 'planned' },
-      { onConflict: 'household_id,day' }
+      { household_id: householdId, day, meal_slot: mealSlot, recipe_id: recipeId, status: 'planned' },
+      { onConflict: 'household_id,day,meal_slot' }
     )
     .select('*, recipe:recipes(id,title,photo_path)')
     .single()
 }
 
-export async function setMealPlanStatus(sb: SupabaseClient, householdId: string, day: string, status: MealPlanItem['status']) {
+export async function setMealPlanStatus(
+  sb: SupabaseClient,
+  householdId: string,
+  day: string,
+  status: MealPlanItem['status'],
+  mealSlot: number = 0
+) {
   return await sb
     .from('meal_plan')
     .update({ status })
     .eq('day', day)
     .eq('household_id', householdId)
+    .eq('meal_slot', mealSlot)
     .select('*, recipe:recipes(id,title,photo_path)')
     .single()
 }
@@ -93,7 +111,20 @@ export async function joinHousehold(sb: SupabaseClient, joinCode: string) {
 }
 
 export async function getHousehold(sb: SupabaseClient, householdId: string) {
-  return await sb.from('households').select('id, join_code').eq('id', householdId).single()
+  return await sb.from('households').select('id, join_code, meals_per_day').eq('id', householdId).single()
+}
+
+export async function updateHouseholdSettings(
+  sb: SupabaseClient,
+  householdId: string,
+  settings: { meals_per_day?: number }
+) {
+  return await sb
+    .from('households')
+    .update(settings)
+    .eq('id', householdId)
+    .select('id, join_code, meals_per_day')
+    .single()
 }
 
 export type { Household, Recipe, MealPlanItem, CookFeedback }

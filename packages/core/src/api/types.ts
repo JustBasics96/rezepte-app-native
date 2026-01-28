@@ -18,6 +18,7 @@ export type MealPlanItem = {
   id: string
   household_id: string
   day: string // YYYY-MM-DD
+  meal_slot: number // 0-3
   recipe_id: string
   status: 'planned' | 'prepped' | 'cooked'
   created_at: string
@@ -25,7 +26,11 @@ export type MealPlanItem = {
   recipe?: Pick<Recipe, 'id' | 'title' | 'photo_path'>
 }
 
-export type Household = { id: string; join_code: string }
+export type Household = {
+  id: string
+  join_code: string
+  meals_per_day: number // 1-4, default 2
+}
 
 // Optional lightweight memory aid (kept local-first; sync can be added later)
 export type CookFeedback = {
