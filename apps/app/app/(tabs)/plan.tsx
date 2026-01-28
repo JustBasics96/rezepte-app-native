@@ -234,6 +234,17 @@ export default function PlanScreen() {
     )
   }
 
+  // Check if week is empty (no recipes planned)
+  const isWeekEmpty = useMemo(() => {
+    for (const day of week.days) {
+      for (let slot = 0; slot < mealsPerDay; slot++) {
+        const key = `${day}:${slot}`
+        if (week.byDaySlot.get(key)?.recipe_id) return false
+      }
+    }
+    return true
+  }, [week.days, week.byDaySlot, mealsPerDay])
+
   return (
     <Screen scroll>
       <TopBar title="Wochenplan" />
@@ -250,6 +261,16 @@ export default function PlanScreen() {
           <Text style={[styles.navArrow, { color: t.tint }]}>›</Text>
         </Pressable>
       </View>
+
+      {/* Empty week hint */}
+      {isWeekEmpty && weekOffset === 0 && (
+        <View style={[styles.emptyHint, { backgroundColor: t.tint + '15', borderColor: t.tint }]}>
+          <Text style={[styles.emptyHintTitle, { color: t.tint }]}>🗓 Diese Woche ist noch leer</Text>
+          <Text style={[styles.emptyHintBody, { color: t.muted }]}>
+            Tippe auf ＋ um Gerichte zu planen – dann weißt du immer was auf den Tisch kommt!
+          </Text>
+        </View>
+      )}
 
       {/* All days */}
       {week.days.map((day) => (
@@ -308,5 +329,14 @@ const styles = StyleSheet.create({
   },
   cookedIcon: { fontSize: 16, fontWeight: '700' },
   emptySlot: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  emptyText: { fontSize: 13, fontWeight: '700' }
+  emptyText: { fontSize: 13, fontWeight: '700' },
+  emptyHint: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 10,
+    alignItems: 'center'
+  },
+  emptyHintTitle: { fontSize: 15, fontWeight: '800', marginBottom: 4 },
+  emptyHintBody: { fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 18 }
 })
