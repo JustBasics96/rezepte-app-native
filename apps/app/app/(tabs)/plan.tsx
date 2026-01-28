@@ -104,6 +104,17 @@ export default function PlanScreen() {
     return `${formatDay(week.days[0])} – ${formatDay(week.days[week.days.length - 1])}`
   }, [week.days])
 
+  // Check if week is empty (no recipes planned)
+  const isWeekEmpty = useMemo(() => {
+    for (const day of week.days) {
+      for (let slot = 0; slot < mealsPerDay; slot++) {
+        const key = `${day}:${slot}`
+        if (week.byDaySlot.get(key)?.recipe_id) return false
+      }
+    }
+    return true
+  }, [week.days, week.byDaySlot, mealsPerDay])
+
   // Render a single meal slot row
   function MealSlot({ day, slot, showSlotLabel }: { day: string; slot: number; showSlotLabel: boolean }) {
     const key = `${day}:${slot}`
@@ -233,17 +244,6 @@ export default function PlanScreen() {
       </Screen>
     )
   }
-
-  // Check if week is empty (no recipes planned)
-  const isWeekEmpty = useMemo(() => {
-    for (const day of week.days) {
-      for (let slot = 0; slot < mealsPerDay; slot++) {
-        const key = `${day}:${slot}`
-        if (week.byDaySlot.get(key)?.recipe_id) return false
-      }
-    }
-    return true
-  }, [week.days, week.byDaySlot, mealsPerDay])
 
   return (
     <Screen scroll>
