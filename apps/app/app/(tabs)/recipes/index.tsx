@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { router } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 
@@ -29,6 +29,9 @@ export default function RecipesTab() {
   const [favOnly, setFavOnly] = useState(false)
   const [tag, setTag] = useState<string | null>(null)
   const [sort, setSort] = useState<SortMode>('recent')
+  const [quickTitle, setQuickTitle] = useState('')
+  const [quickSaving, setQuickSaving] = useState(false)
+  const quickInputRef = useRef<TextInput>(null)
 
   // Refresh data when returning from editor
   useFocusEffect(
@@ -89,6 +92,24 @@ export default function RecipesTab() {
     router.push({ pathname: '/recipe-editor', params: { id } })
   }
 
+  // Quick-add: create recipe with just a title
+  async function handleQuickAdd() {
+    const title = quickTitle.trim()
+    if (!title) return
+    try {
+      setQuickSaving(true)
+      const saved = await recipes.saveRecipe({ title, ingredients: '', steps: '' })
+      setQuickTitle('')
+      // Open editor for the new recipe so user can add details
+      router.push({ pathname: '/recipe-editor', params: { id: saved.id } })
+    } catch (e: any) {
+      console.error('[OurRecipeBook] quickAdd failed', e)
+      Alert.alert('Fehler', e?.message ?? 'Gericht konnte nicht erstellt werden')
+    } finally {
+      setQuickSaving(false)
+    }
+  }
+
   if (recipes.loading) {
     return (
       <Screen>
@@ -139,15 +160,36 @@ export default function RecipesTab() {
         </ScrollView>
       )}
 
-      {/* Quick-add inline */}
-      <Pressable onPress={openNew} accessibilityRole="button" accessibilityLabel="Neues Gericht anlegen">
-        {({ pressed }) => (
-          <View style={[styles.addRow, { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.85 : 1 }]}>
-            <Text style={[styles.addIcon, { color: t.tint }]}>＋</Text>
-            <Text style={[styles.addText, { color: t.muted }]}>Neues Gericht anlegen</Text>
-          </View>
+      {/* Quick-add inline – type title and create instantly */}
+      <View style={[styles.quickAddRow, { backgroundColor: t.card, borderColor: t.border }]}>
+        <TextInput
+          ref={quickInputRef}
+          value={quickTitle}
+          onChangeText={setQuickTitle}
+          onSubmitEditing={handleQuickAdd}
+          placeholder="＋ Neues Gericht …"
+          placeholderTextColor={t.muted}
+          returnKeyType="done"
+          blurOnSubmit={false}
+          editable={!quickSaving}
+          style={[styles.quickInput, { color: t.text }]}
+          accessibilityLabel="Neues Gericht schnell anlegen"
+        />
+        {quickTitle.trim().length > 0 && (
+          <Pressable
+            onPress={handleQuickAdd}
+            disabled={quickSaving}
+            accessibilityRole="button"
+            accessibilityLabel="Gericht erstellen"
+          >
+            {({ pressed }) => (
+              <Text style={[styles.quickBtn, { color: t.tint, opacity: pressed || quickSaving ? 0.6 : 1 }]}>
+                {quickSaving ? '…' : 'Anlegen'}
+              </Text>
+            )}
+          </Pressable>
         )}
-      </Pressable>
+      </View>
 
       {!filtered.length ? <EmptyState title="Keine Gerichte" body="Lege dein erstes Gericht an." /> : null}
 
@@ -214,18 +256,18 @@ const styles = StyleSheet.create({
   spacer: { flex: 1 },
   tagsScroll: { marginBottom: 4 },
   tagsContent: { gap: 8, paddingRight: 16 },
-  addRow: {
+  quickAddRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 14,
+    paddingVertical: 6,
     paddingHorizontal: 16,
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 4
   },
-  addIcon: { fontSize: 22, fontWeight: '700' },
-  addText: { fontSize: 15, fontWeight: '600' },
+  quickInput: { flex: 1, fontSize: 15, fontWeight: '600', paddingVertical: 10 },
+  quickBtn: { fontSize: 15, fontWeight: '700', paddingVertical: 8, paddingHorizontal: 4 },
   row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   content: { flex: 1, gap: 4 },
   image: { width: 78, height: 58, borderRadius: 12 },
