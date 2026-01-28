@@ -136,8 +136,8 @@ describe('meal plan API client', () => {
 
 		expect(from).toHaveBeenCalledWith('meal_plan')
 		expect(query.upsert).toHaveBeenCalledWith(
-			{ household_id: 'h1', day: '2026-01-05', recipe_id: 'r1', status: 'planned' },
-			{ onConflict: 'household_id,day' }
+			{ household_id: 'h1', day: '2026-01-05', recipe_id: 'r1', status: 'planned', meal_slot: 0 },
+			{ onConflict: 'household_id,day,meal_slot' }
 		)
 		expect(result).toEqual({ data: 'ok', error: null })
 	})
@@ -172,13 +172,13 @@ describe('household API client', () => {
 		expect(result).toEqual({ data: 'rpc', error: null })
 	})
 
-	it('getHousehold selects id and join_code by id', async () => {
+	it('getHousehold selects id, join_code and enabled_slots by id', async () => {
 		const { client, from, query } = createSupabaseClient()
 
 		const result = await getHousehold(client, 'h1')
 
 		expect(from).toHaveBeenCalledWith('households')
-		expect(query.select).toHaveBeenCalledWith('id, join_code')
+		expect(query.select).toHaveBeenCalledWith('id, join_code, enabled_slots')
 		expect(result).toEqual({ data: 'ok', error: null })
 	})
 })

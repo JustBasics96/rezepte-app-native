@@ -21,6 +21,63 @@ describe('parseIngredientLine', () => {
     expect(r?.unit).toBe(null)
     expect(r?.raw).toBe('Salz & Pfeffer')
   })
+
+  it('parses teaspoon abbreviation', () => {
+    const r = parseIngredientLine('1 TL Salz')
+    expect(r?.qty).toBe(1)
+    expect(r?.unit).toBe('tl')
+    expect(r?.name).toBe('Salz')
+  })
+
+  it('parses tablespoon abbreviation', () => {
+    const r = parseIngredientLine('2 EL Olivenöl')
+    expect(r?.qty).toBe(2)
+    expect(r?.unit).toBe('el')
+    expect(r?.name).toBe('Olivenöl')
+  })
+
+  it('parses Stück as unit', () => {
+    const r = parseIngredientLine('3 Stück Zwiebeln')
+    expect(r?.qty).toBe(3)
+    expect(r?.unit).toBe('stück')
+    expect(r?.name).toBe('Zwiebeln')
+  })
+
+  it('parses kg unit', () => {
+    const r = parseIngredientLine('1,5 kg Mehl')
+    expect(r?.qty).toBe(1.5)
+    expect(r?.unit).toBe('kg')
+    expect(r?.name).toBe('Mehl')
+  })
+
+  it('parses ml unit', () => {
+    const r = parseIngredientLine('500 ml Wasser')
+    expect(r?.qty).toBe(500)
+    expect(r?.unit).toBe('ml')
+    expect(r?.name).toBe('Wasser')
+  })
+
+  it('handles x multiplier - x is consumed by regex, unit is next word', () => {
+    const r = parseIngredientLine('2 x Eier')
+    expect(r?.qty).toBe(2)
+    // Note: The (?:x|×)? in the regex consumes 'x' as a separator
+    // 'Eier' (4 chars, < 6 limit) becomes the unit, name is empty → falls back to raw
+    expect(r?.unit).toBe('eier')
+    expect(r?.name).toBe('2 x Eier') // Falls back to raw when name is empty
+    expect(r?.raw).toBe('2 x Eier')
+  })
+
+  it('handles decimal with dot', () => {
+    const r = parseIngredientLine('0.5 l Sahne')
+    expect(r?.qty).toBe(0.5)
+    expect(r?.unit).toBe('l')
+    expect(r?.name).toBe('Sahne')
+  })
+
+  it('returns null for empty lines', () => {
+    expect(parseIngredientLine('')).toBe(null)
+    expect(parseIngredientLine('   ')).toBe(null)
+  })
 })
 
 describe('buildShoppingListFromPlan', () => {

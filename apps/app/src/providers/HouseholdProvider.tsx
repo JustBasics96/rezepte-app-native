@@ -1,6 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { Household } from '@our-recipebook/core'
-import { createHousehold, getHousehold, joinHousehold, updateHouseholdSettings } from '@our-recipebook/core'
+import {
+  createHousehold,
+  getHousehold,
+  joinHousehold,
+  updateHouseholdSettings,
+  parseEnabledSlots,
+  DEFAULT_SLOTS
+} from '@our-recipebook/core'
 
 import { kv } from '../platform/storage'
 import { supabase } from '../platform/supabase'
@@ -8,19 +15,6 @@ import { useSession } from './SessionProvider'
 
 const KEY_HOUSEHOLD_ID = 'orb.householdId'
 const KEY_JOIN_CODE = 'orb.joinCode'
-
-const DEFAULT_SLOTS = [2] // Just dinner by default
-
-function parseEnabledSlots(raw: string | number[] | null | undefined): number[] {
-  if (!raw) return DEFAULT_SLOTS
-  if (Array.isArray(raw)) return raw
-  try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : DEFAULT_SLOTS
-  } catch {
-    return DEFAULT_SLOTS
-  }
-}
 
 type HouseholdState = {
   ready: boolean
