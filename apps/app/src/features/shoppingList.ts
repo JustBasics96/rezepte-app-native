@@ -30,27 +30,30 @@ export function useShoppingList() {
     load()
   }, [load])
 
-  const persist = useCallback(async (next: ShoppingItem[]) => {
-    setState((s) => ({ ...s, items: next }))
+  const persist = useCallback(async (updater: (items: ShoppingItem[]) => ShoppingItem[]) => {
+    let next: ShoppingItem[] = []
+    setState((s) => {
+      next = updater(s.items)
+      return { ...s, items: next }
+    })
     await kv.setJson(KEY, next)
   }, [])
 
   const toggle = useCallback(
     async (id: string) => {
-      const next = state.items.map((i) => (i.id === id ? { ...i, checked: !i.checked } : i))
-      await persist(next)
+      await persist((items) => items.map((i) => (i.id === id ? { ...i, checked: !i.checked } : i)))
     },
-    [state.items, persist]
+    [persist]
   )
 
   const clearChecked = useCallback(async () => {
-    await persist(state.items.filter((i) => !i.checked))
-  }, [state.items, persist])
+    await persist((items) => items.filter((i) => !i.checked))
+  }, [persist])
 
   const rebuildFromPlan = useCallback(
     async (plan: MealPlanItem[], recipesById: Map<string, Recipe>) => {
       const built = buildShoppingListFromPlan(plan, recipesById)
-      await persist(built)
+      await persist(() => built)
     },
     [persist]
   )
@@ -68,16 +71,16 @@ export function useShoppingList() {
         checked: false,
         sourceRecipeIds: []
       }
-      await persist([newItem, ...state.items])
+      await persist((items) => [newItem, ...items])
     },
-    [state.items, persist]
+    [persist]
   )
 
   const removeItem = useCallback(
     async (id: string) => {
-      await persist(state.items.filter((i) => i.id !== id))
+      await persist((items) => items.filter((i) => i.id !== id))
     },
-    [state.items, persist]
+    [persist]
   )
 
   return {
