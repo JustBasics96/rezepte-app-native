@@ -2,7 +2,7 @@
   "expo": {
     "name": "Unser Rezeptbuch",
     "slug": "unser-rezeptbuch",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "our-recipebook",
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.ourrecipebook"
+      "bundleIdentifier": "com.ruberg.ourrecipebook"
     },
     "android": {
-      "package": "com.example.ourrecipebook",
+      "package": "com.ruberg.ourrecipebook",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

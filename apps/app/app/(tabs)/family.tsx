@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 
@@ -216,6 +216,19 @@ export default function FamilyTab() {
         <Text style={[styles.logoutText, { color: t.muted }]}>Abmelden / Zurücksetzen</Text>
       </Pressable>
 
+      {/* Legal links */}
+      <View style={styles.legalRow}>
+        <Pressable onPress={() => Linking.openURL('https://ruberg.dev/rezeptbuch/impressum')}>
+          <Text style={[styles.legalLink, { color: t.muted }]}>Impressum</Text>
+        </Pressable>
+        <Text style={[styles.legalDot, { color: t.border }]}>·</Text>
+        <Pressable onPress={() => Linking.openURL('https://ruberg.dev/rezeptbuch/datenschutz')}>
+          <Text style={[styles.legalLink, { color: t.muted }]}>Datenschutz</Text>
+        </Pressable>
+      </View>
+
+      <Text style={[styles.tiny, { color: t.muted }]}>Version 1.0.0</Text>
+
       {household ? (
         <Text style={[styles.tiny, { color: t.muted }]}>ID: {household.id}</Text>
       ) : null}
@@ -254,6 +267,9 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logoutRow: { paddingVertical: 14, alignItems: 'center' },
   logoutText: { fontSize: 13, fontWeight: '700' },
+  legalRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 8 },
+  legalLink: { fontSize: 12, fontWeight: '600' },
+  legalDot: { fontSize: 12 },
   slotList: { gap: 8 },
   slotRow: {
     flexDirection: 'row',
