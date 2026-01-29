@@ -15,11 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ruberg.kochplan",
+      "bundleIdentifier": "com.ruberg.ourrecipebook",
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "com.ruberg.kochplan",
+      "package": "com.ruberg.ourrecipebook",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
