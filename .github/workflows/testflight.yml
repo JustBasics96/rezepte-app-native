@@ -31,6 +31,10 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Configure EAS Project
+        working-directory: apps/app
+        run: eas init --id ${{ secrets.EAS_PROJECT_ID }} --non-interactive
+
       - name: Build iOS
         working-directory: apps/app
         run: eas build --platform ios --profile production --non-interactive
