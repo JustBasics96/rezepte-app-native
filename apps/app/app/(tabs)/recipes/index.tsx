@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { weeksAgoLabel } from '@our-recipebook/core'
 
 import { useRecipes } from '../../../src/features/recipes'
-import { useCookFeedback } from '../../../src/features/cookFeedback'
+import { useCookFeedback } from '../../../src/providers/CookFeedbackProvider'
 import { publicPhotoUrl } from '../../../src/features/photos'
 import { Screen } from '../../../src/ui/components/Screen'
 import { TopBar } from '../../../src/ui/components/TopBar'

@@ -9,7 +9,7 @@ import { weeksAgoLabel } from '@our-recipebook/core'
 
 import { useHousehold } from '../../src/providers/HouseholdProvider'
 import { useRecipes } from '../../src/features/recipes'
-import { useCookFeedback } from '../../src/features/cookFeedback'
+import { useCookFeedback } from '../../src/providers/CookFeedbackProvider'
 import { kv } from '../../src/platform/storage'
 import { Onboarding } from '../../src/ui/Onboarding'
 import { Screen } from '../../src/ui/components/Screen'

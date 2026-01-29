@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useMealPlanWeek } from '../../src/features/mealPlan'
 import { useRecipes } from '../../src/features/recipes'
-import { useCookFeedback } from '../../src/features/cookFeedback'
+import { useCookFeedback } from '../../src/providers/CookFeedbackProvider'
 import { useHousehold } from '../../src/providers/HouseholdProvider'
 import { publicPhotoUrl } from '../../src/features/photos'
 import { Screen } from '../../src/ui/components/Screen'
