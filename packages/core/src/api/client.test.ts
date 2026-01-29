@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import {
 	createHousehold,
 	deleteRecipe,
+	deleteMealPlanBySlots,
 	getHousehold,
 	getRecipe,
 	joinHousehold,
@@ -16,6 +17,7 @@ import {
 function createQuery(result: any = { data: 'ok', error: null }) {
 	const query: any = {
 		_eqCalls: [] as { column: string; value: unknown }[],
+		_inCalls: [] as { column: string; values: unknown[] }[],
 		_updateArgs: [] as any[],
 		_upsertArgs: [] as any[][],
 		select: vi.fn().mockReturnThis(),
@@ -31,6 +33,10 @@ function createQuery(result: any = { data: 'ok', error: null }) {
 		}),
 		eq: vi.fn(function (this: any, column: string, value: unknown) {
 			this._eqCalls.push({ column, value })
+			return this
+		}),
+		in: vi.fn(function (this: any, column: string, values: unknown[]) {
+			this._inCalls.push({ column, values })
 			return this
 		}),
 		gte: vi.fn().mockReturnThis(),
@@ -180,5 +186,44 @@ describe('household API client', () => {
 		expect(from).toHaveBeenCalledWith('households')
 		expect(query.select).toHaveBeenCalledWith('id, join_code, enabled_slots')
 		expect(result).toEqual({ data: 'ok', error: null })
+	})
+})
+
+describe('deleteMealPlanBySlots', () => {
+	it('deletes all meal_plan entries for given slots', async () => {
+		const { client, from, query } = createSupabaseClient()
+
+		await deleteMealPlanBySlots(client, 'h1', [2, 3])
+
+		expect(from).toHaveBeenCalledWith('meal_plan')
+		expect(query.delete).toHaveBeenCalled()
+		// Should filter by household_id
+		const eqCalls = query._eqCalls
+		expect(eqCalls.some((c: any) => c.column === 'household_id' && c.value === 'h1')).toBe(true)
+		// Should filter by slots using IN
+		const inCalls = query._inCalls
+		expect(inCalls.some((c: any) => c.column === 'meal_slot' && JSON.stringify(c.values) === '[2,3]')).toBe(true)
+	})
+
+	it('handles empty slots array without making a request', async () => {
+		const { client, from } = createSupabaseClient()
+
+		const result = await deleteMealPlanBySlots(client, 'h1', [])
+
+		// Should not make any DB call when no slots to delete
+		expect(from).not.toHaveBeenCalled()
+		expect(result).toEqual({ data: null, error: null })
+	})
+
+	it('deletes entries for a single slot', async () => {
+		const { client, from, query } = createSupabaseClient()
+
+		await deleteMealPlanBySlots(client, 'h1', [1])
+
+		expect(from).toHaveBeenCalledWith('meal_plan')
+		expect(query.delete).toHaveBeenCalled()
+		// Should use IN even for a single slot
+		const inCalls = query._inCalls
+		expect(inCalls.some((c: any) => c.column === 'meal_slot' && JSON.stringify(c.values) === '[1]')).toBe(true)
 	})
 })

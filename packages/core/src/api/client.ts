@@ -127,4 +127,22 @@ export async function updateHouseholdSettings(
     .single()
 }
 
+/**
+ * Delete all meal_plan entries for the given slots.
+ * Used when disabling slots to clean up orphaned entries.
+ */
+export async function deleteMealPlanBySlots(
+  sb: SupabaseClient,
+  householdId: string,
+  slots: number[]
+) {
+  if (slots.length === 0) return { data: null, error: null }
+  
+  return await sb
+    .from('meal_plan')
+    .delete()
+    .eq('household_id', householdId)
+    .in('meal_slot', slots)
+}
+
 export type { Household, Recipe, MealPlanItem, CookFeedback }

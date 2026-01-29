@@ -38,6 +38,26 @@ export default function FamilyTab() {
 
   const slotLabels = useMemo(() => SLOT_KEYS.map((key) => t(`slots.${key}`)), [t])
 
+  // Handle slot toggle with confirmation for removal
+  async function handleToggleSlot(idx: number) {
+    const result = await toggleSlot(idx)
+    if (result?.needsConfirmation) {
+      const slotName = slotLabels[idx]
+      Alert.alert(
+        t('family.disableSlot', { slot: slotName }),
+        t('family.disableSlotWarning', { slot: slotName }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => toggleSlot(idx, true)
+          }
+        ]
+      )
+    }
+  }
+
   // Aggregiere Feedback pro Rezept
   const feedbackByRecipe = useMemo(() => {
     const map = new Map<string, { good: number; bad: number; lastAt: string }>()
@@ -206,7 +226,7 @@ export default function FamilyTab() {
             return (
               <Pressable
                 key={idx}
-                onPress={() => toggleSlot(idx)}
+                onPress={() => handleToggleSlot(idx)}
                 style={[
                   styles.slotRow,
                   { borderColor: isEnabled ? theme.tint : theme.border, backgroundColor: isEnabled ? theme.tint + '15' : theme.card }

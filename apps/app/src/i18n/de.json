@@ -170,6 +170,8 @@
     "noResults": "Keine Treffer.",
     "dailyPlanning": "Tägliche Planung",
     "dailyPlanningHint": "Welche Mahlzeiten plant ihr?",
+    "disableSlot": "{{slot}} deaktivieren?",
+    "disableSlotWarning": "Alle geplanten Mahlzeiten für {{slot}} werden entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
     "familyCode": "Family Code",
     "familyCodeHint": "Teile den Code, damit ein zweites Gerät beitreten kann.",
     "shareMessage": "Hey! Tritt unserer Familie in der Rezeptbuch-App bei 🍽️\n\nDein Family Code: {{code}}\n\nEinfach die App öffnen → Familie → Mit Code verbinden",

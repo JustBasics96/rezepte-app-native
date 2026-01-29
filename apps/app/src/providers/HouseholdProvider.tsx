@@ -5,6 +5,7 @@ import {
   getHousehold,
   joinHousehold,
   updateHouseholdSettings,
+  deleteMealPlanBySlots,
   parseEnabledSlots,
   DEFAULT_SLOTS
 } from '@our-recipebook/core'
@@ -16,6 +17,8 @@ import { useSession } from './SessionProvider'
 const KEY_HOUSEHOLD_ID = 'orb.householdId'
 const KEY_JOIN_CODE = 'orb.joinCode'
 
+type ToggleSlotResult = { needsConfirmation: boolean; slot?: number } | undefined
+
 type HouseholdState = {
   ready: boolean
   household: Household | null
@@ -23,7 +26,7 @@ type HouseholdState = {
   enabledSlots: number[]
   error: string | null
   joinByCode: (code: string) => Promise<void>
-  toggleSlot: (slot: number) => Promise<void>
+  toggleSlot: (slot: number, confirmed?: boolean) => Promise<ToggleSlotResult>
   reset: () => Promise<void>
 }
 
@@ -108,13 +111,14 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     setEnabledSlotsState(slots)
   }, [])
 
-  const toggleSlot = useCallback(async (slot: number) => {
+  const toggleSlot = useCallback(async (slot: number, confirmed = false) => {
     if (!household?.id) return
     
     const current = enabledSlots
+    const isRemoving = current.includes(slot)
     let next: number[]
     
-    if (current.includes(slot)) {
+    if (isRemoving) {
       // Remove slot (but keep at least one)
       next = current.filter(s => s !== slot)
       if (next.length === 0) next = [slot] // Can't disable all
@@ -122,9 +126,23 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
       // Add slot
       next = [...current, slot].sort((a, b) => a - b)
     }
+    
+    // If removing and not confirmed, signal that confirmation is needed
+    // The UI layer should call toggleSlot(slot, true) after user confirms
+    if (isRemoving && !confirmed) {
+      return { needsConfirmation: true, slot }
+    }
 
     // Optimistic update
     setEnabledSlotsState(next)
+
+    // If removing a slot, delete all associated meal plan entries first
+    if (isRemoving) {
+      const { error: delErr } = await deleteMealPlanBySlots(supabase as any, household.id, [slot])
+      if (delErr) {
+        console.error('[OurRecipeBook] Failed to delete meal_plan entries for slot', slot, delErr)
+      }
+    }
 
     const { data, error: uErr } = await updateHouseholdSettings(supabase as any, household.id, {
       enabled_slots: JSON.stringify(next)
@@ -142,6 +160,8 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
       setHousehold({ ...data, enabled_slots: newSlots } as Household)
       setEnabledSlotsState(newSlots)
     }
+    
+    return { needsConfirmation: false }
   }, [household?.id, enabledSlots])
 
   const reset = useCallback(async () => {
