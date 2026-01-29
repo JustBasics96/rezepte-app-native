@@ -87,7 +87,7 @@ export default function PlanScreen() {
       try {
         await week.touchLastCooked(it.recipe_id)
       } catch (e) {
-        console.warn('[OurRecipeBook] markLastCooked failed', e)
+        console.warn('[Kochplan] markLastCooked failed', e)
       }
       Alert.alert(t('feedback.title'), t('feedback.hint'), [
         { text: t('feedback.good'), onPress: () => feedback.record({ recipeId: it.recipe_id, day, score: 1 }) },

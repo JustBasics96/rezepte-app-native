@@ -1,4 +1,4 @@
-# Unser Rezeptbuch – AI Assistant Instructions
+# Kochplan – AI Assistant Instructions
 
 Instructions for AI coding agents working in this repo. Keep answers concise and follow these patterns.
 
@@ -67,11 +67,11 @@ Use `Alert.alert()` only for destructive confirmations.
 
 ### Commands
 ```bash
-npm install                          # Install all
-npm run typecheck                    # TypeScript
-npm run test                         # 49 tests (Vitest)
-npm -w @our-recipebook/app run web   # Web dev
-npm -w @our-recipebook/app run ios   # iOS simulator
+npm install                        # Install all
+npm run typecheck                  # TypeScript
+npm run test                       # 49 tests (Vitest)
+npm -w @kochplan/app run web       # Web dev
+npm -w @kochplan/app run ios       # iOS simulator
 ```
 
 ### Adding Features
@@ -102,7 +102,7 @@ Tests in `packages/core/src/**/*.test.ts`
 
 ## Conventions
 
-- Log prefix: `[OurRecipeBook]`
+- Log prefix: `[Kochplan]`
 - Error handling: `{ data, error }` from core, throw in app layer
 - Optimistic updates for better UX
 - Always run `npm run typecheck` after changes

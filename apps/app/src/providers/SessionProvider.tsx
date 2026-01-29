@@ -29,7 +29,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setSession(data.session)
         setUser(data.session?.user ?? null)
       } catch (e: any) {
-        console.error('[OurRecipeBook] Auth init failed', e)
+        console.error('[Kochplan] Auth init failed', e)
         if (mounted) setError(e?.message ?? 'Auth init failed')
       } finally {
         if (mounted) setReady(true)

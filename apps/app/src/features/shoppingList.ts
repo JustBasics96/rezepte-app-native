@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { MealPlanItem, Recipe, ShoppingItem } from '@our-recipebook/core'
-import { buildShoppingListFromPlan, makeId } from '@our-recipebook/core'
+import type { MealPlanItem, Recipe, ShoppingItem } from '@kochplan/core'
+import { buildShoppingListFromPlan, makeId } from '@kochplan/core'
 
 import { kv } from '../platform/storage'
 
@@ -21,7 +21,7 @@ export function useShoppingList() {
       const stored = (await kv.getJson<ShoppingItem[]>(KEY)) ?? []
       setState({ loading: false, error: null, items: stored })
     } catch (e: any) {
-      console.error('[OurRecipeBook] loadShoppingList failed', e)
+      console.error('[Kochplan] loadShoppingList failed', e)
       setState({ loading: false, error: e?.message ?? 'Failed to load list', items: [] })
     }
   }, [])

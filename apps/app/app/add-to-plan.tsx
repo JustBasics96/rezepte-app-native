@@ -115,7 +115,7 @@ export default function AddToPlan() {
       setNewTitle('')
       router.back()
     } catch (e: any) {
-      console.error('[OurRecipeBook] createAndAdd failed', e)
+      console.error('[Kochplan] createAndAdd failed', e)
       Alert.alert(t('common.error'), e?.message ?? t('common.error'))
     } finally {
       setCreating(false)

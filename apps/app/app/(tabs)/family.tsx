@@ -5,7 +5,7 @@ import * as Clipboard from 'expo-clipboard'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useTranslation } from 'react-i18next'
 
-import { weeksAgoLabel } from '@our-recipebook/core'
+import { weeksAgoLabel } from '@kochplan/core'
 
 import { useHousehold } from '../../src/providers/HouseholdProvider'
 import { useRecipes } from '../../src/features/recipes'
@@ -100,7 +100,7 @@ export default function FamilyTab() {
         message: t('family.shareMessage', { code: joinCode }),
       })
     } catch (e: any) {
-      console.error('[OurRecipeBook] share failed', e)
+      console.error('[Kochplan] share failed', e)
     }
   }
 
@@ -111,7 +111,7 @@ export default function FamilyTab() {
       setCode('')
       toastSuccess(t('family.connected'))
     } catch (e: any) {
-      console.error('[OurRecipeBook] join failed', e)
+      console.error('[Kochplan] join failed', e)
       toastError(e?.message ?? 'Join failed')
     } finally {
       setBusy(false)

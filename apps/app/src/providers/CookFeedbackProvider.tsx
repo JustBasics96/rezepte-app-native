@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import type { CookFeedback } from '@our-recipebook/core'
-import { listCookFeedback, insertCookFeedback } from '@our-recipebook/core'
+import type { CookFeedback } from '@kochplan/core'
+import { listCookFeedback, insertCookFeedback } from '@kochplan/core'
 
 import { supabase } from '../platform/supabase'
 import { useHousehold } from './HouseholdProvider'
@@ -46,7 +46,7 @@ export function CookFeedbackProvider({ children }: { children: React.ReactNode }
 
       setItems(fetched)
     } catch (e: any) {
-      console.error('[OurRecipeBook] loadCookFeedback failed', e)
+      console.error('[Kochplan] loadCookFeedback failed', e)
       setError(e?.message ?? 'Failed')
     } finally {
       setLoading(false)
@@ -68,7 +68,7 @@ export function CookFeedbackProvider({ children }: { children: React.ReactNode }
       try {
         await insertCookFeedback(supabase as any, household.id, entry)
       } catch (e: any) {
-        console.error('[OurRecipeBook] insertCookFeedback failed', e)
+        console.error('[Kochplan] insertCookFeedback failed', e)
         setError(e?.message ?? 'Failed to save feedback')
       }
     },

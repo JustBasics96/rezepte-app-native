@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { Recipe } from '@our-recipebook/core'
-import { deleteRecipe, getRecipe, listRecipes, upsertRecipe } from '@our-recipebook/core'
+import type { Recipe } from '@kochplan/core'
+import { deleteRecipe, getRecipe, listRecipes, upsertRecipe } from '@kochplan/core'
 
 import { supabase } from '../platform/supabase'
 import { useHousehold } from '../providers/HouseholdProvider'
@@ -24,7 +24,7 @@ export function useRecipes() {
       const rows = (data as Recipe[]) ?? []
       setState({ loading: false, error: null, recipes: rows })
     } catch (e: any) {
-      console.error('[OurRecipeBook] listRecipes failed', e)
+      console.error('[Kochplan] listRecipes failed', e)
       setState({ loading: false, error: e?.message ?? 'Failed to load recipes', recipes: [] })
     }
   }, [household?.id])

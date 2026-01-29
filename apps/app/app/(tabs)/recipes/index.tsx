@@ -4,7 +4,7 @@ import { router } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 
-import { weeksAgoLabel } from '@our-recipebook/core'
+import { weeksAgoLabel } from '@kochplan/core'
 
 import { useRecipes } from '../../../src/features/recipes'
 import { useCookFeedback } from '../../../src/providers/CookFeedbackProvider'
@@ -105,7 +105,7 @@ export default function RecipesTab() {
       // Open editor for the new recipe so user can add details
       router.push({ pathname: '/recipe-editor', params: { id: saved.id } })
     } catch (e: any) {
-      console.error('[OurRecipeBook] quickAdd failed', e)
+      console.error('[Kochplan] quickAdd failed', e)
       Alert.alert(t('common.error'), e?.message ?? t('common.error'))
     } finally {
       setQuickSaving(false)

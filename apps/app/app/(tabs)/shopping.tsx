@@ -41,7 +41,7 @@ export default function ShoppingTab() {
       await shopping.rebuildFromPlan(week.items, recipes.recipesById)
       toastSuccess(t('shopping.updated'))
     } catch (e: any) {
-      console.error('[OurRecipeBook] rebuildShoppingList failed', e)
+      console.error('[Kochplan] rebuildShoppingList failed', e)
       toastError(e?.message ?? 'Rebuild failed')
     } finally {
       setRebuilding(false)
@@ -62,7 +62,7 @@ export default function ShoppingTab() {
     try {
       await Share.share({ message: header + text })
     } catch (e) {
-      console.warn('[OurRecipeBook] share failed', e)
+      console.warn('[Kochplan] share failed', e)
     }
   }
 

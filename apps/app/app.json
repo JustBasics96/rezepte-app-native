@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Unser Rezeptbuch",
-    "slug": "unser-rezeptbuch",
+    "name": "Kochplan",
+    "slug": "kochplan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "our-recipebook",
+    "scheme": "kochplan",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -15,11 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ruberg.ourrecipebook",
+      "bundleIdentifier": "com.ruberg.kochplan",
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "com.ruberg.ourrecipebook",
+      "package": "com.ruberg.kochplan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

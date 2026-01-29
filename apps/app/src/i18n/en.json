@@ -174,7 +174,7 @@
     "disableSlotWarning": "All planned meals for {{slot}} will be removed. This action cannot be undone.",
     "familyCode": "Family Code",
     "familyCodeHint": "Share this code so another device can join.",
-    "shareMessage": "Hey! Join our family in the Recipe Book app 🍽️\n\nYour Family Code: {{code}}\n\nJust open the app → Family → Connect with Code",
+    "shareMessage": "Hey! Join our family in the Kochplan app 🍽️\n\nYour Family Code: {{code}}\n\nJust open the app → Family → Connect with Code",
     "copied": "Copied",
     "copiedHint": "Family code is in the clipboard.",
     "connectWithCode": "Connect with Code",
@@ -194,7 +194,7 @@
 
   "onboarding": {
     "step1Title": "Welcome!",
-    "step1Body": "Our Recipebook helps your family organize the week plan – so no one asks \"What's for dinner?\" anymore.",
+    "step1Body": "Kochplan helps your family organize the week plan – so no one asks \"What's for dinner?\" anymore.",
     "step2Title": "Collect Recipes",
     "step2Body": "Add your favorite recipes – with ingredients, photo, and tags like \"Quick\" or \"Kids\".",
     "step3Title": "Plan the Week",

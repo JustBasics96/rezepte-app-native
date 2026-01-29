@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { MealPlanItem } from '@our-recipebook/core'
-import { listMealPlan, markLastCooked, setMealPlanDay, setMealPlanStatus, weekRange } from '@our-recipebook/core'
+import type { MealPlanItem } from '@kochplan/core'
+import { listMealPlan, markLastCooked, setMealPlanDay, setMealPlanStatus, weekRange } from '@kochplan/core'
 
 import { supabase } from '../platform/supabase'
 import { useHousehold } from '../providers/HouseholdProvider'
@@ -28,7 +28,7 @@ export function useMealPlanWeek(anchorDate = new Date()) {
       if (error) throw error
       setState((s) => ({ ...s, loading: false, error: null, items: (data as any) ?? [] }))
     } catch (e: any) {
-      console.error('[OurRecipeBook] listMealPlan failed', e)
+      console.error('[Kochplan] listMealPlan failed', e)
       setState((s) => ({ ...s, loading: false, error: e?.message ?? 'Failed to load week' }))
     }
   }, [household?.id, range.from, range.to])

@@ -17,7 +17,7 @@ import { useTheme } from '../src/ui/theme'
 import { useHousehold } from '../src/providers/HouseholdProvider'
 import { useRecipes } from '../src/features/recipes'
 import { publicPhotoUrl, uploadRecipePhoto } from '../src/features/photos'
-import type { Recipe } from '@our-recipebook/core'
+import type { Recipe } from '@kochplan/core'
 
 function parseTags(raw: string): string[] {
   return raw
@@ -69,7 +69,7 @@ export default function RecipeEditorScreen() {
         setTagsRaw((r.tags ?? []).join(', '))
         setExistingPhotoPath(r.photo_path)
       } catch (e: any) {
-        console.error('[OurRecipeBook] loadRecipe failed', e)
+        console.error('[Kochplan] loadRecipe failed', e)
         if (mounted) setError(e?.message ?? 'Failed to load recipe')
       } finally {
         if (mounted) setLoading(false)
@@ -191,7 +191,7 @@ export default function RecipeEditorScreen() {
       toastSuccess(t('editor.saved'))
       router.back()
     } catch (e: any) {
-      console.error('[OurRecipeBook] saveRecipe failed', e)
+      console.error('[Kochplan] saveRecipe failed', e)
       setError(e?.message ?? 'Save failed')
     }
   }
@@ -208,7 +208,7 @@ export default function RecipeEditorScreen() {
             await recipes.removeRecipe(id)
             router.back()
           } catch (e: any) {
-            console.error('[OurRecipeBook] deleteRecipe failed', e)
+            console.error('[Kochplan] deleteRecipe failed', e)
             Alert.alert(t('common.error'), e?.message ?? 'Delete failed')
           }
         }

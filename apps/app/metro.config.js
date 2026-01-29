@@ -1,4 +1,4 @@
-// Enables importing TypeScript source from workspace packages (e.g. @our-recipebook/core).
+// Enables importing TypeScript source from workspace packages (e.g. @kochplan/core).
 // This keeps the shared "core" package truly shared without a build step.
 
 const path = require('path')

@@ -74,7 +74,7 @@ export default function AuthScreen() {
         // User cancelled, don't show error
         return
       }
-      console.error('[OurRecipeBook] Apple Sign-In failed', e)
+      console.error('[Kochplan] Apple Sign-In failed', e)
       setError(e?.message ?? t('auth.appleError'))
     } finally {
       setAppleLoading(false)
@@ -125,7 +125,7 @@ export default function AuthScreen() {
         {/* App branding */}
         <View style={styles.header}>
           <Text style={[styles.emoji]}>🍽️</Text>
-          <Text style={[styles.appName, { color: theme.text }]}>Unser Rezeptbuch</Text>
+          <Text style={[styles.appName, { color: theme.text }]}>Kochplan</Text>
           <Text style={[styles.tagline, { color: theme.muted }]}>{t('auth.tagline')}</Text>
         </View>
 

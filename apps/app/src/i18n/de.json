@@ -174,7 +174,7 @@
     "disableSlotWarning": "Alle geplanten Mahlzeiten für {{slot}} werden entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
     "familyCode": "Family Code",
     "familyCodeHint": "Teile den Code, damit ein zweites Gerät beitreten kann.",
-    "shareMessage": "Hey! Tritt unserer Familie in der Rezeptbuch-App bei 🍽️\n\nDein Family Code: {{code}}\n\nEinfach die App öffnen → Familie → Mit Code verbinden",
+    "shareMessage": "Hey! Tritt unserer Familie in der Kochplan-App bei 🍽️\n\nDein Family Code: {{code}}\n\nEinfach die App öffnen → Familie → Mit Code verbinden",
     "copied": "Kopiert",
     "copiedHint": "Family Code ist in der Zwischenablage.",
     "connectWithCode": "Mit Code verbinden",
@@ -194,7 +194,7 @@
 
   "onboarding": {
     "step1Title": "Willkommen!",
-    "step1Body": "Unser Rezeptbuch hilft eurer Familie, den Wochenplan zu organisieren – damit niemand mehr fragt: \"Was gibt es heute?\"",
+    "step1Body": "Kochplan hilft eurer Familie, den Wochenplan zu organisieren – damit niemand mehr fragt: \"Was gibt es heute?\"",
     "step2Title": "Gerichte sammeln",
     "step2Body": "Lege eure Lieblingsgerichte an – mit Zutaten, Foto und Tags wie \"Schnell\" oder \"Kinder\".",
     "step3Title": "Woche planen",

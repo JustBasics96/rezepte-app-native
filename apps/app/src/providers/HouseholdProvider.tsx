@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import type { Household } from '@our-recipebook/core'
+import type { Household } from '@kochplan/core'
 import {
   createHousehold,
   getHousehold,
@@ -8,7 +8,7 @@ import {
   deleteMealPlanBySlots,
   parseEnabledSlots,
   DEFAULT_SLOTS
-} from '@our-recipebook/core'
+} from '@kochplan/core'
 
 import { kv } from '../platform/storage'
 import { supabase } from '../platform/supabase'
@@ -82,7 +82,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
           setEnabledSlotsState(slots)
         }
       } catch (e: any) {
-        console.error('[OurRecipeBook] Household init failed', e)
+        console.error('[Kochplan] Household init failed', e)
         if (mounted) setError(e?.message ?? 'Household init failed')
       } finally {
         if (mounted) setReady(true)
@@ -140,7 +140,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     if (isRemoving) {
       const { error: delErr } = await deleteMealPlanBySlots(supabase as any, household.id, [slot])
       if (delErr) {
-        console.error('[OurRecipeBook] Failed to delete meal_plan entries for slot', slot, delErr)
+        console.error('[Kochplan] Failed to delete meal_plan entries for slot', slot, delErr)
       }
     }
 
@@ -149,7 +149,7 @@ export function HouseholdProvider({ children }: { children: React.ReactNode }) {
     })
 
     if (uErr) {
-      console.error('[OurRecipeBook] Failed to update enabled_slots', uErr)
+      console.error('[Kochplan] Failed to update enabled_slots', uErr)
       // Revert on error
       setEnabledSlotsState(current)
       return

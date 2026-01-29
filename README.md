@@ -1,4 +1,4 @@
-# Unser Rezeptbuch 🍽️
+# Kochplan 🍽️
 
 > Familien-Mahlzeitenplaner für iOS, Android & Web
 
@@ -32,7 +32,7 @@ Cross‑platform App mit **gemeinsamer Codebasis** (Expo 54 + React Native).
 ## 📁 Repo Struktur
 
 ```
-our-recipebook/
+kochplan/
 ├── apps/app/           # Expo App (Screens, UI, Providers)
 │   ├── app/            # expo-router Screens
 │   ├── src/
@@ -71,16 +71,16 @@ npm install
 
 ```bash
 # Web
-npm -w @our-recipebook/app run web
+npm -w @kochplan/app run web
 
 # iOS (Simulator)
-npm -w @our-recipebook/app run ios
+npm -w @kochplan/app run ios
 
 # iOS (Device) – erfordert Xcode
-npm -w @our-recipebook/app run run:ios
+npm -w @kochplan/app run run:ios
 
 # Android
-npm -w @our-recipebook/app run android
+npm -w @kochplan/app run android
 ```
 
 ## 🧪 Quality
@@ -117,7 +117,7 @@ Erstelle Bucket `recipe-photos` (public) für Rezeptfotos.
 cd apps/app && npx expo prebuild --platform ios --clean
 
 # 2. In Xcode öffnen
-open ios/UnserRezeptbuch.xcworkspace
+open ios/Kochplan.xcworkspace
 
 # 3. Archive (Product → Archive)
 # 4. Distribute → App Store Connect
