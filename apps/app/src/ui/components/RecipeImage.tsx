@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Image, ImageStyle, Platform, StyleSheet, View } from 'react-native'
-import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { Image, ImageStyle, StyleSheet } from 'react-native'
 
-// Render a simple placeholder view instead of requiring a binary asset
+// Placeholder image for recipes without photo
+const placeholderImage = require('../../../../assets/images/placeholder-receipe.png')
 
 export function RecipeImage({ uri, style }: { uri: string | null; style?: ImageStyle }) {
   const [hasError, setHasError] = useState(false)
@@ -27,14 +27,17 @@ export function RecipeImage({ uri, style }: { uri: string | null; style?: ImageS
     )
   }
 
+  // Show placeholder image
   const placeholderStyle = StyleSheet.flatten([
-    { width: 80, height: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: '#eee', borderRadius: 12 },
+    { width: 80, height: 60, borderRadius: 12 },
     style
   ]) as ImageStyle
 
   return (
-    <View style={placeholderStyle}>
-      <FontAwesome name="image" size={24} color="#999" />
-    </View>
+    <Image
+      source={placeholderImage}
+      style={placeholderStyle}
+      resizeMode="cover"
+    />
   )
 }
