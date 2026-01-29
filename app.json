@@ -10,7 +10,15 @@
       "web"
     ],
     "ios": {
-      "bundleIdentifier": "io.ruberg.familyreceip"
+      "bundleIdentifier": "io.ruberg.familyreceip",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "61ef898a-4d4e-4851-8e2e-27cf1b2d60f3"
+      }
     }
   }
 }
