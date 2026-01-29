@@ -1,71 +1,108 @@
-# Our Recipebook – AI Assistant Instructions
+# Unser Rezeptbuch – AI Assistant Instructions
 
-These instructions are for AI coding agents ("Copilot", etc.) working in this repo.
-Keep answers concise and focus on THIS project’s patterns.
+Instructions for AI coding agents working in this repo. Keep answers concise and follow these patterns.
 
-## Architecture Overview
-- Monorepo managed by npm workspaces:
-  - Root: tooling + shared scripts (see [package.json](package.json)).
-  - App: Expo React Native + Web in [apps/app](apps/app).
-  - Core: shared domain + API utilities in [packages/core](packages/core).
-- App structure (expo-router):
-  - Entry + navigation in [apps/app/app/_layout.tsx](apps/app/app/_layout.tsx) and tab layout in [apps/app/app/(tabs)/_layout.tsx](apps/app/app/(tabs)/_layout.tsx).
-  - Screens live under [apps/app/app](apps/app/app) (e.g. `plan`, `recipes`, `family`, `recipe-editor`, `add-to-plan`).
-- Shared React context providers:
-  - Wrap all UI in `AppProviders` from [apps/app/src/providers/AppProviders.tsx](apps/app/src/providers/AppProviders.tsx) which nests `SessionProvider` and `HouseholdProvider`.
-- Core package:
-  - Public surface is re-exported from [packages/core/src/index.ts](packages/core/src/index.ts).
-  - Domain logic (e.g. meal plan and shopping list) lives under [packages/core/src/domain](packages/core/src/domain).
-  - Supabase client wrapper and types live under [packages/core/src/api](packages/core/src/api).
+## Architecture
 
-## Data & Side-Effects
-- Supabase:
-  - Client is created once in [apps/app/src/platform/supabase.ts](apps/app/src/platform/supabase.ts) using env vars `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` via `env/assertEnv`.
-  - Always import and reuse this `supabase` instance in app code; do not create new clients.
-  - Anonymous auth is expected; do not introduce other auth flows without explicit request.
-- Local storage:
-  - AsyncStorage is wrapped by `kv` in [apps/app/src/platform/storage.ts](apps/app/src/platform/storage.ts).
-  - Use `kv.getJson` / `kv.setJson` etc. instead of calling `AsyncStorage` directly.
-- Domain hooks in app layer:
-  - Meal plan: [apps/app/src/features/mealPlan.ts](apps/app/src/features/mealPlan.ts) exposes `useMealPlanWeek`, calling core functions like `listMealPlan`, `setMealPlanDay`, `setMealPlanStatus`, `markLastCooked`.
-    - Follows pattern: `State { loading, error, items }`, `refresh` function, and optimistic local updates after mutations.
-  - Recipes: [apps/app/src/features/recipes.ts](apps/app/src/features/recipes.ts) exposes `useRecipes` with `recipes`, `recipesById`, and `saveRecipe`/`loadRecipe`/`removeRecipe` using core recipe APIs.
-  - Shopping list: [apps/app/src/features/shoppingList.ts](apps/app/src/features/shoppingList.ts) manages offline-first list via `kv` and `buildShoppingListFromPlan` from core.
-  - When adding new flows, mirror this hook pattern: local `State`, `refresh` on mount, error string, and minimal console logging with `[OurRecipeBook]` prefix.
+### Monorepo Structure
+- **Root**: npm workspaces, shared scripts
+- **apps/app**: Expo 54 React Native + Web (expo-router)
+- **packages/core**: Shared domain logic, API client, utilities
 
-## Developer Workflows
-- Install dependencies from repo root:
-  - `npm install`
-- Type-check / lint / test (monorepo-wide):
-  - `npm run typecheck` → runs workspace `typecheck` (including core + app).
-  - `npm run test` → runs workspace `test` (Vitest in core; app currently prints a placeholder).
-  - `npm run lint` → runs workspace `lint` (linting primarily in app).
-- App-specific scripts (run from repo root with `-w` or inside `apps/app`):
-  - Web dev: `npm -w @our-recipebook/app run web`.
-  - Expo dev: `npm -w @our-recipebook/app run start`.
-  - Native (prebuild): `npm -w @our-recipebook/app run run:ios` / `run:android`.
+### App Structure (expo-router)
+- Entry: `apps/app/app/_layout.tsx`
+- Tabs: `apps/app/app/(tabs)/_layout.tsx`
+- Screens: `plan.tsx`, `shopping.tsx`, `recipes/`, `family.tsx`
+- Modals: `recipe-editor.tsx`, `add-to-plan.tsx`, `auth.tsx`
 
-## Conventions & Patterns
-- Keep business logic in `@our-recipebook/core` where possible, and keep React hooks thin:
-  - Use core helpers for date/ID/time utilities instead of ad-hoc implementations.
-  - For new derived data (e.g. building lists from meal plans), prefer adding functions in `packages/core/src/domain` and calling them from app hooks.
-- React hooks:
-  - Follow existing `useX` patterns: `State` with `loading`/`error`, `refresh`/mutation functions, and optimistic updates.
-  - Use `useHousehold` from `HouseholdProvider` for `household.id` when scoping data.
-- Storage keys:
-  - Reuse or introduce clear, namespaced keys (e.g. `orb.shoppingList`) when persisting via `kv`; avoid hard-coded AsyncStorage keys scattered across the app.
-- Error handling:
-  - For Supabase or storage errors, log with a clear `[OurRecipeBook]` prefix and set a human-readable `error` string on local state.
-  - Prefer returning `{ data, error }` from core functions and throwing in the app layer only after checking `error`, as seen in current hooks.
+### Providers (in AppProviders.tsx)
+```
+I18nextProvider
+  └─ SessionProvider (Supabase auth)
+       └─ HouseholdProvider (household state, slots)
+            └─ CookFeedbackProvider (shared feedback state)
+```
 
-## When Modifying / Adding Features
-- For new shared functionality, add it under `packages/core/src` and export it via [packages/core/src/index.ts](packages/core/src/index.ts), then consume it in app hooks under [apps/app/src/features](apps/app/src/features).
-- For new screens:
-  - Place them under [apps/app/app](apps/app/app) and wire them in the relevant router layout (`Stack` or `Tabs`).
-  - Use existing screens as examples for prop and hook usage.
-- Maintain existing TypeScript/ESLint setup:
-  - Ensure `npm run typecheck` and `npm run lint` pass after changes.
+### Core Package Exports
+- **API**: `listRecipes`, `upsertRecipe`, `listMealPlan`, `setMealPlanDay`, `deleteMealPlanBySlots`, etc.
+- **Domain**: `buildShoppingListFromPlan`, `parseIngredientLine`
+- **Utils**: `formatDay`, `parseEnabledSlots`, `generateId`, `weeksAgoLabel`
 
-## Supabase & DB
-- Schema and policies are defined in [supabase/migrations](supabase/migrations) (e.g. `0001_init.sql`, `0002_cook_feedback.sql`).
-- Do not hard-code table/column names in the app layer; rely on `@our-recipebook/core` API functions to access Supabase.
+## Key Patterns
+
+### Feature Hooks (in apps/app/src/features/)
+```typescript
+type State = { loading: boolean; error: string | null; items: T[] }
+
+export function useFeature() {
+  const [state, setState] = useState<State>(...)
+  const refresh = useCallback(async () => { ... }, [deps])
+  useEffect(() => { refresh() }, [refresh])
+  return { ...state, refresh, mutate }
+}
+```
+
+### Supabase Client
+- Single instance in `apps/app/src/platform/supabase.ts`
+- Never create new clients; import this one
+- Auth: Apple Sign-In + Email/Password (no anonymous)
+
+### Storage
+- Use `kv` from `apps/app/src/platform/storage.ts`
+- Keys namespaced: `orb.shoppingList`, `orb.householdId`, etc.
+
+### i18n
+- Files: `apps/app/src/i18n/de.json`, `en.json`
+- Use: `const { t } = useTranslation()`
+- Add keys to BOTH language files
+
+### Toast Notifications
+```typescript
+import { toastSuccess, toastError } from '../src/ui/toast'
+toastSuccess(t('editor.saved'))  // Brief, non-blocking
+```
+Use `Alert.alert()` only for destructive confirmations.
+
+## Development
+
+### Commands
+```bash
+npm install                          # Install all
+npm run typecheck                    # TypeScript
+npm run test                         # 49 tests (Vitest)
+npm -w @our-recipebook/app run web   # Web dev
+npm -w @our-recipebook/app run ios   # iOS simulator
+```
+
+### Adding Features
+1. Core logic → `packages/core/src/` + export in `index.ts`
+2. Feature hook → `apps/app/src/features/`
+3. Screen → `apps/app/app/`
+4. Translations → both `de.json` and `en.json`
+
+### Testing (TDD encouraged)
+1. Write tests first (Red)
+2. Implement (Green)
+3. Refactor
+
+Tests in `packages/core/src/**/*.test.ts`
+
+## Database
+
+### Tables
+- `households` (id, join_code, enabled_slots)
+- `recipes` (id, household_id, title, ingredients, steps, photo_path, tags, favorite)
+- `meal_plan` (household_id, day, meal_slot, recipe_id, status)
+- `cook_feedback` (household_id, recipe_id, day, score)
+
+### Migrations
+- `0001_init.sql` – Base schema
+- `0002_cook_feedback.sql` – Feedback table
+- `0003_meals_per_day.sql` – Multi-slot support
+
+## Conventions
+
+- Log prefix: `[OurRecipeBook]`
+- Error handling: `{ data, error }` from core, throw in app layer
+- Optimistic updates for better UX
+- Always run `npm run typecheck` after changes

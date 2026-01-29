@@ -1,125 +1,148 @@
-# Unser Rezeptbuch (Expo RN + Web)
+# Unser Rezeptbuch 🍽️
 
-Cross‑platform App (iOS/Android/Web) mit **gemeinsamer Codebasis**.
+> Familien-Mahlzeitenplaner für iOS, Android & Web
 
-Produkt-Vibe: **Notizbuch + Kalender + Kochzettel**.
+Cross‑platform App mit **gemeinsamer Codebasis** (Expo 54 + React Native).
 
-## Core Flows
+## ✨ Features
 
-- **Wochenplan**: Tage als Cards, 1 Tap zum Rezept wählen, Status „leer / geplant / gekocht“.
-- **Einkaufsliste**: automatisch aus dem Plan, Checkbox-first, offline persistent.
-- **Rezepte**: Favoriten + Tags, schneller Editor, optional Foto.
-- **Familie / Sync**: „Family Code“ verbindet zwei Geräte in einen gemeinsamen Haushalt.
-- **Gedächtnisstütze**: beim „gekocht“ optional 👍/👎 (local-first) + „Hat gut funktioniert“ + „Wiederholen“.
+- **Wochenplan** – Frühstück, Mittag, Abend, Snack pro Tag planen
+- **Multi-Slot** – Konfigurierbare Mahlzeiten (1–4 Slots)
+- **Einkaufsliste** – Automatisch aus dem Plan generiert, offline-first
+- **Rezepte** – Mit Foto, Zutaten, Tags und Favoriten
+- **Familie** – Family Code verbindet mehrere Geräte
+- **Bewertungen** – 👍/👎 nach dem Kochen, Statistik in Familie
+- **i18n** – Deutsch & Englisch
+- **Auth** – Apple Sign-In + Email/Passwort
 
-## Repo Struktur
+## 📱 Screenshots
 
-- `packages/core` – Domain + Types + API wrappers (shared)
-- `apps/app` – Expo App (expo-router, Screens, RN UI)
-- `supabase/migrations` – SQL Schema + RLS + RPCs
+*Coming soon*
 
-## Setup
+## 🛠️ Tech Stack
 
-### 1) Env
+| Layer | Technologie |
+|-------|-------------|
+| Frontend | Expo 54, React Native, expo-router |
+| State | React Context (Session, Household, CookFeedback) |
+| Backend | Supabase (Postgres, Auth, Storage) |
+| i18n | i18next + react-i18next |
+| Tests | Vitest (49 Tests) |
 
-Kopiere `.env.example` nach `apps/app/.env` (oder setze die Variablen im Shell-Env).
+## 📁 Repo Struktur
 
+```
+our-recipebook/
+├── apps/app/           # Expo App (Screens, UI, Providers)
+│   ├── app/            # expo-router Screens
+│   ├── src/
+│   │   ├── features/   # Domain hooks (mealPlan, recipes, shoppingList)
+│   │   ├── providers/  # Context Providers
+│   │   ├── ui/         # Komponenten + Theme
+│   │   └── i18n/       # Übersetzungen (de.json, en.json)
+│   └── ios/            # Native iOS Project
+├── packages/core/      # Shared Domain + API + Utils
+│   └── src/
+│       ├── api/        # Supabase Client Functions
+│       ├── domain/     # Shopping List Builder
+│       └── utils/      # Date, Time, Slots, ID helpers
+└── supabase/migrations/  # SQL Schema + RLS
+```
+
+## 🚀 Setup
+
+### 1. Environment
+
+```bash
+cp apps/app/.env.example apps/app/.env
+```
+
+Setze:
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 
-### 2) Install
+### 2. Install
 
 ```bash
 npm install
 ```
 
-## Run
+### 3. Run
 
-### Web
 ```bash
+# Web
 npm -w @our-recipebook/app run web
-```
 
-### Dev Server (Expo)
-```bash
-npm -w @our-recipebook/app run start
-```
+# iOS (Simulator)
+npm -w @our-recipebook/app run ios
 
-### Native (prebuild)
-```bash
+# iOS (Device) – erfordert Xcode
 npm -w @our-recipebook/app run run:ios
-npm -w @our-recipebook/app run run:android
+
+# Android
+npm -w @our-recipebook/app run android
 ```
 
-> iOS Build benötigt macOS (oder EAS Build). Android geht lokal.
-
-## Quality Scripts
+## 🧪 Quality
 
 ```bash
-npm run typecheck
-npm run test
-npm -w @our-recipebook/app run lint
+npm run typecheck    # TypeScript Check
+npm run test         # 49 Tests (Vitest)
+npm run lint         # ESLint
 ```
 
-## Supabase
+## ☁️ Supabase Setup
 
-### DB Schema
+### Database
 
-Wende die Migration an:
-- `supabase/migrations/0001_init.sql`
+Führe die Migrations aus:
+1. `supabase/migrations/0001_init.sql` – Basis-Schema
+2. `supabase/migrations/0002_cook_feedback.sql` – Bewertungen
+3. `supabase/migrations/0003_meals_per_day.sql` – Multi-Slot
 
 ### Auth
 
-Die App nutzt **Anonymous Auth** (`signInAnonymously`).
-Aktiviere in Supabase Auth Settings den Provider **Anonymous**.
+Aktiviere in Supabase Dashboard:
+- **Apple** Provider (für iOS)
+- **Email** Provider
 
-### Storage (Recipe Photos)
+### Storage
 
-Die App erwartet ein Bucket:
-- Bucket Name: `recipe-photos`
-- Empfehlung: **public** (einfacher Start) – Pfade sind `householdId/recipeId.ext`.
+Erstelle Bucket `recipe-photos` (public) für Rezeptfotos.
 
-Minimal-Policies (SQL Editor) – erlaubt Upload/Update/Delete für authenticated User:
+## 📲 TestFlight / Release
 
-```sql
--- Bucket muss existieren (Dashboard)
+```bash
+# 1. Prebuild
+cd apps/app && npx expo prebuild --platform ios --clean
 
--- Allow authenticated users to insert/update/delete objects
-create policy if not exists "recipe_photos_insert"
-  on storage.objects for insert to authenticated
-  with check (bucket_id = 'recipe-photos');
+# 2. In Xcode öffnen
+open ios/UnserRezeptbuch.xcworkspace
 
-create policy if not exists "recipe_photos_update"
-  on storage.objects for update to authenticated
-  using (bucket_id = 'recipe-photos')
-  with check (bucket_id = 'recipe-photos');
-
-create policy if not exists "recipe_photos_delete"
-  on storage.objects for delete to authenticated
-  using (bucket_id = 'recipe-photos');
+# 3. Archive (Product → Archive)
+# 4. Distribute → App Store Connect
+# 5. TestFlight in App Store Connect konfigurieren
 ```
 
-> Optional: Wenn du es strenger willst, kann man die Policy auf Pfad-Präfix (householdId) einschränken.
+## 📋 Definition of Done
 
-### Conflict Handling
-
-- **Last-write-wins** über `updated_at` DB-Trigger.
-- Client setzt Änderungen direkt; bei Konflikten gewinnt der letzte Update.
-
-## Troubleshooting
-
-- **Env fehlt**: Log zeigt `Missing env vars: EXPO_PUBLIC_SUPABASE_URL ...`.
-- **Monorepo Imports**: `apps/app/metro.config.js` watchFolders ist gesetzt.
-- **Foto Upload**: nutzt `fetch(uri).blob()` (Expo-compatible). Wenn ein bestimmtes Bildformat zickt, testweise JPEG nehmen.
-
-## Definition of Done (Projekt-Stand)
-
-- [x] Expo (iOS/Android/Web) Grundsetup (Expo Router Tabs)
-- [x] Shared Core (Types/Domain/API) + Tests
-- [x] Wochenplan (Plan) + Add-to-plan
-- [x] Einkaufsliste (Offline-first) + „Neu aus Plan“
-- [x] Rezepte Liste + Editor + Foto Upload
+- [x] Expo (iOS/Android/Web) mit expo-router
+- [x] Shared Core Package mit Tests
+- [x] Wochenplan mit Multi-Slot Support
+- [x] Einkaufsliste (offline-first)
+- [x] Rezepte mit Foto-Upload
 - [x] Family Code (Create/Join/Reset)
-- [x] Loading / Empty / Error States
-- [x] typecheck/test/lint Scripts vorhanden
+- [x] Cook Feedback (👍/👎)
+- [x] i18n (DE/EN)
+- [x] Apple Sign-In + Email Auth
+- [x] Native Toast Notifications
+- [x] 49 Tests passing
+
+## 📄 License
+
+Private / All Rights Reserved
+
+---
+
+Made with ❤️ für Familien, die gerne zusammen kochen.
 
