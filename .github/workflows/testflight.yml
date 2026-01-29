@@ -1,0 +1,40 @@
+name: iOS TestFlight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/app/**'
+      - 'packages/core/**'
+      - '.github/workflows/testflight.yml'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build-and-submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS
+        working-directory: apps/app
+        run: eas build --platform ios --profile production --non-interactive
+
+      - name: Submit to TestFlight
+        working-directory: apps/app
+        run: eas submit --platform ios --latest --non-interactive
