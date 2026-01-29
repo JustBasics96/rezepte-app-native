@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Image, ImageStyle, StyleSheet } from 'react-native'
 
 // Placeholder image for recipes without photo
-const placeholderImage = require('../../../../assets/images/placeholder-receipe.png')
+const placeholderImage = require('../../../assets/images/placeholder-receipe.png')
 
 export function RecipeImage({ uri, style }: { uri: string | null; style?: ImageStyle }) {
   const [hasError, setHasError] = useState(false)
