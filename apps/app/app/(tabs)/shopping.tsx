@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native'
+import { toastSuccess, toastError } from '../../src/ui/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useTranslation } from 'react-i18next'
@@ -38,10 +39,10 @@ export default function ShoppingTab() {
       setRebuilding(true)
       await week.refresh()
       await shopping.rebuildFromPlan(week.items, recipes.recipesById)
-      Alert.alert(t('common.ok'), t('shopping.updated'))
+      toastSuccess(t('shopping.updated'))
     } catch (e: any) {
       console.error('[OurRecipeBook] rebuildShoppingList failed', e)
-      Alert.alert(t('common.error'), e?.message ?? 'Rebuild failed')
+      toastError(e?.message ?? 'Rebuild failed')
     } finally {
       setRebuilding(false)
     }

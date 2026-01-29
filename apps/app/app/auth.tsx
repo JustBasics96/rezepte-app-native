@@ -6,6 +6,7 @@ import * as Crypto from 'expo-crypto'
 import { useTranslation } from 'react-i18next'
 
 import { supabase } from '../src/platform/supabase'
+import { toastSuccess } from '../src/ui/toast'
 import { Screen } from '../src/ui/components/Screen'
 import { TopBar } from '../src/ui/components/TopBar'
 import { Input } from '../src/ui/components/Input'
@@ -101,7 +102,7 @@ export default function AuthScreen() {
           password
         })
         if (signUpError) throw signUpError
-        Alert.alert(t('auth.confirmationSent'), t('auth.checkEmail'))
+        toastSuccess(t('auth.checkEmail'))
         return // Don't navigate yet, user needs to confirm email
       }
 

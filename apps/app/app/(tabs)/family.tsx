@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Alert, Linking, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native'
+import { toastSuccess, toastError } from '../../src/ui/toast'
 import * as Clipboard from 'expo-clipboard'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { useTranslation } from 'react-i18next'
@@ -69,7 +70,7 @@ export default function FamilyTab() {
   async function copy() {
     if (!joinCode) return
     await Clipboard.setStringAsync(joinCode)
-    Alert.alert(t('family.copied'), t('family.copiedHint'))
+    toastSuccess(t('family.copied'))
   }
 
   async function shareCode() {
@@ -88,10 +89,10 @@ export default function FamilyTab() {
       setBusy(true)
       await joinByCode(code)
       setCode('')
-      Alert.alert(t('family.connected'), t('family.connectedHint'))
+      toastSuccess(t('family.connected'))
     } catch (e: any) {
       console.error('[OurRecipeBook] join failed', e)
-      Alert.alert(t('common.error'), e?.message ?? 'Join failed')
+      toastError(e?.message ?? 'Join failed')
     } finally {
       setBusy(false)
     }
@@ -121,7 +122,7 @@ export default function FamilyTab() {
         style: 'destructive',
         onPress: async () => {
           await reset()
-          Alert.alert(t('common.ok'), t('family.loggedOut'))
+          toastSuccess(t('family.loggedOut'))
         }
       }
     ])

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Alert, Platform, StyleSheet, Text, View } from 'react-native'
+import { toastSuccess } from '../src/ui/toast'
 import { router, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { useTranslation } from 'react-i18next'
@@ -187,7 +188,7 @@ export default function RecipeEditorScreen() {
         setPhotoUri(null)
       }
 
-      Alert.alert(t('common.save'), t('editor.saved'))
+      toastSuccess(t('editor.saved'))
       router.back()
     } catch (e: any) {
       console.error('[OurRecipeBook] saveRecipe failed', e)
